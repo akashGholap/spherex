@@ -66,7 +66,6 @@ int main(int argc, char** argv)
     ROS_ERROR("GPS health insufficient - No local frame reference for height. Exiting.");
     return 0;
   }
-
   /*if(is_M100())
   {
     ROS_INFO("M100 taking off!");
@@ -87,12 +86,12 @@ int main(int argc, char** argv)
   while(ros::ok())
   {
     sensor_msgs::Joy controlVelYawRate;
-    controlVelYawRate.axes.push_back(15);
-    controlVelYawRate.axes.push_back(15);
-    controlVelYawRate.axes.push_back(15);
-    controlVelYawRate.axes.push_back(10);
+    controlVelYawRate.axes.push_back(3);
+    controlVelYawRate.axes.push_back(3);
+    controlVelYawRate.axes.push_back(3);
+    controlVelYawRate.axes.push_back(3);
     ctrlVelYawratePub.publish(controlVelYawRate);
-    ROS_INFO("##### Start route %d ....", 1);
+    ROS_INFO("##### Start %d....", 1 );
     ros::spinOnce();
   }
 
@@ -192,7 +191,7 @@ void Mission::step()
     controlVelYawRate.axes.push_back(0);
     controlVelYawRate.axes.push_back(flag);
 
-    ctrlBrakePub.publish(controlVelYawRate);
+    ctrlVelYawratePub.publish(controlVelYawRate);
     break_counter++;
     return;
   }
@@ -273,7 +272,14 @@ bool obtain_control()
   return true;
 }
 
-bool is_M100()
+bool is_M100()add_executable(demo_flight_control
+        src/demo_flight_control.cpp)
+
+target_link_libraries(demo_flight_control
+        ${catkin_LIBRARIES}
+        ${DJIOSDK_LIBRARIES}
+        )
+add_dependencies(demo_flight_control dji_sdk_generate_messages_cpp)
 {
   dji_sdk::QueryDroneVersion query;
   query_version_service.call(query);
