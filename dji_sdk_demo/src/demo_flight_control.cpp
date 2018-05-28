@@ -51,7 +51,7 @@ int main(int argc, char** argv)
   // We could use dji_sdk/flight_control_setpoint_ENUvelocity_yawrate here, but
   // we use dji_sdk/flight_control_setpoint_generic to demonstrate how to set the flag
   // properly in function Mission::step()
-  ctrlBrakePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 10);
+  ctrlBrakePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_generic", 10);
   
   // Basic services
   sdk_ctrl_authority_service = nh.serviceClient<dji_sdk::SDKControlAuthority> ("dji_sdk/sdk_control_authority");
@@ -61,51 +61,32 @@ int main(int argc, char** argv)
 
   bool obtain_control_result = obtain_control();
   bool takeoff_result;
-  
-if (!set_local_position()) // We need this for height
+  if (!set_local_position()) // We need this for height
   {
     ROS_ERROR("GPS health insufficient - No local frame reference for height. Exiting.");
     return 1;
   }
 
+  if(is_M100())
+  {
     ROS_INFO("M100 taking off!");
     takeoff_result = M100monitoredTakeoff();
-/*  
+  }
+  else
+  {
     ROS_INFO("A3/N3 taking off!");
     takeoff_result = monitoredTakeoff();
   }
 
- */
-    int x=0, y=0, z=0;
+  if(takeoff_result)
+  {
     square_mission.reset();
     square_mission.start_gps_location = current_gps;
     square_mission.start_local_position = current_local_pos;
-while(ros::ok()&&takeoff_result)
-{    x = x+10;
-     y = y+15;
-     z = z +20;
-    sensor_msgs::Joy controlVelYawRate;
-
-    uint8_t flag = (DJISDK::VERTICAL_VELOCITY   |
-                DJISDK::HORIZONTAL_VELOCITY |
-                DJISDK::YAW_RATE            |
-                DJISDK::HORIZONTAL_GROUND   |
-                DJISDK::STABLE_ENABLE);
-    controlVelYawRate.axes.push_back(x);
-    controlVelYawRate.axes.push_back(y);
-    controlVelYawRate.axes.push_back(z);
-    controlVelYawRate.axes.push_back(5);
-    controlVelYawRate.axes.push_back(flag);
-
-    ctrlBrakePub.publish(controlVelYawRate);
-    //square_mission.state = 1;
-    if (x>70){ x=0;
-y =0;
-z =0;
-}
-
-    ROS_INFO("##### Start route %d ....", 1);
-}
+    square_mission.setTarget(0, 20, 3, 60);
+    square_mission.state = 1;
+    ROS_INFO("##### Start route %d ....", square_mission.state);
+  }
 
   ros::spin();
   return 0;
@@ -128,6 +109,7 @@ localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
   deltaNed.x = deltaLon * deg2rad * C_EARTH * cos(deg2rad*target.latitude);
   deltaNed.z = target.altitude - origin.altitude;
 }
+
 
 geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
 {
