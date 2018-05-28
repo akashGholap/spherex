@@ -222,6 +222,15 @@ target_link_libraries(demo_flight_control
         )
 add_dependencies(demo_flight_control dji_sdk_generate_messages_cpp)
 
+add_executable(demo_spaceTREx
+        src/demo_spaceTREx.cpp)
+
+target_link_libraries(demo_spaceTREx
+        ${catkin_LIBRARIES}
+        ${DJIOSDK_LIBRARIES}
+        )
+add_dependencies(demo_spaceTREx dji_sdk_generate_messages_cpp)
+
 add_executable(demo_mobile_comm
         src/demo_mobile_comm.cpp)
 
