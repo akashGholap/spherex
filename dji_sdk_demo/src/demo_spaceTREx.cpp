@@ -11,6 +11,8 @@
 
 #include "dji_sdk_demo/demo_flight_control.h"
 #include "dji_sdk/dji_sdk.h"
+#include <iostream>
+#include <cstdio>
 
 const float deg2rad = C_PI/180.0;
 const float rad2deg = 180.0/C_PI;
@@ -83,15 +85,19 @@ int main(int argc, char** argv)
     //square_mission.start_local_position = current_local_pos;
     //square_mission.setTarget(0, 20, 3, 60);
     //square_mission.state = 1;
+    sensor_msgs::Joy controlVelYawRate;
+    float x,y,z,yaw;
   while(ros::ok())
   {
-    sensor_msgs::Joy controlVelYawRate;
-    controlVelYawRate.axes.push_back(3);
-    controlVelYawRate.axes.push_back(3);
-    controlVelYawRate.axes.push_back(3);
-    controlVelYawRate.axes.push_back(3);
+
+    //ROS_INFO("##### Start %d....", 1 );
+    std::cout<<"Please Enter Velocity Commands and yaw rate";
+    std::cin>>x>>y>>z>>yaw;
+    controlVelYawRate.axes.push_back(x);
+    controlVelYawRate.axes.push_back(y);
+    controlVelYawRate.axes.push_back(z);
+    controlVelYawRate.axes.push_back(yaw);
     ctrlVelYawratePub.publish(controlVelYawRate);
-    ROS_INFO("##### Start %d....", 1 );
     ros::spinOnce();
   }
 
