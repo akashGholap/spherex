@@ -79,14 +79,14 @@ int main(int argc, char** argv)
     takeoff_result = monitoredTakeoff();
   }
 */
-    float x,y,z,yaw;
+    float x=2 ,y=3,z=2,yaw=2;
     //square_mission.reset();
     //square_mission.start_gps_location = current_gps;
     //square_mission.start_local_position = current_local_pos;
     //square_mission.setTarget(0, 20, 3, 60);
     //square_mission.state = 1;
-    std::cout<<"Please Enter Velocity Commands and yaw rate";
-    std::cin>>x>>y>>z>>yaw;
+  //  std::cout<<"Please Enter Velocity Commands and yaw rate";
+  //  std::cin>>x>>y>>z>>yaw;
 
   while(ros::ok())
   {
@@ -94,6 +94,7 @@ int main(int argc, char** argv)
     //ROS_INFO("##### Start %d....", 1 );
 
     sensor_msgs::Joy controlVelYawRate;
+
     controlVelYawRate.axes.push_back(x);
     controlVelYawRate.axes.push_back(y);
     controlVelYawRate.axes.push_back(z);
