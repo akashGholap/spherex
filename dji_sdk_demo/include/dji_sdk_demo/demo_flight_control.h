@@ -82,6 +82,7 @@ public:
     finished = false;
   }
 
+ bool hopex(float, float, float);
 };
 
 void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
@@ -111,5 +112,7 @@ bool monitoredTakeoff();
 bool M100monitoredTakeoff();
 
 bool set_local_position();
+
+bool landing_initiate(void);
 
 #endif // DEMO_FLIGHT_CONTROL_H

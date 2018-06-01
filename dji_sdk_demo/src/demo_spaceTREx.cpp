@@ -13,7 +13,7 @@
 #include "dji_sdk/dji_sdk.h"
 #include <iostream>
 #include <cstdio>
-#include "dji_sdk_demo/spherex.h"
+//#include "dji_sdk_demo/spherex.h"
 #include "math.h"
 
 const float gravity = -2;
@@ -35,8 +35,8 @@ sensor_msgs::NavSatFix current_gps;
 geometry_msgs::Quaternion current_atti;
 geometry_msgs::Point current_local_pos;
 
-//Mission square_mission;
-robohop hopper;
+Mission square_mission;
+Mission hopper;
 
 int main(int argc, char** argv)
 {
@@ -66,6 +66,7 @@ int main(int argc, char** argv)
 
   bool obtain_control_result = obtain_control();
   bool hopping_result = true;
+
   if (!set_local_position()) // We need this for height
   {
     ROS_ERROR("GPS health insufficient - No local frame reference for height. Exiting.");
@@ -113,23 +114,24 @@ int main(int argc, char** argv)
 /coordinates. Accurate when distances are small.
 !*/
 
-bool robohop::hopex(float x, float y, float z)
+bool Mission::hopex(float x, float y, float z)
 {
-  ros::Time start_time = ros::Time::now();
+  float start_time = ros::Time::now().toSec();
   bool obtain_control_result = obtain_control();
   bool landing_result;
-  Vz_start = Vz_current = z;
-  while((-Vz_current) <= 0.9*Vz_start)
+  float Vz_start = z;
+  float Vz_current = z;
+  while((-1)*(Vz_current) <= 0.9*Vz_start)
   {
     sensor_msgs::Joy controlVelYawRate;
     controlVelYawRate.axes.push_back(x);
     controlVelYawRate.axes.push_back(y);
     controlVelYawRate.axes.push_back(Vz_current);
     ctrlVelYawratePub.publish(controlVelYawRate);
-    Vz_current = Vz_start + gravity*(ros::time::now() - start_time);
+    Vz_current = Vz_start + gravity*((float)ros::Time::now().toSec() - start_time);
     ros::spinOnce();
   }
-  landing_result = this->landing_initiate();
+  landing_result = landing_initiate();
   if(landing_result)
   {
     ROS_INFO("Congrats::SphereX Successfully Landed");
@@ -290,7 +292,7 @@ bool takeoff_land(int task)
   return true;
 }
 
-bool robohop::landing_initiate(void)
+bool landing_initiate(void)
 {
   dji_sdk::DroneTaskControl droneTaskControl;
 
