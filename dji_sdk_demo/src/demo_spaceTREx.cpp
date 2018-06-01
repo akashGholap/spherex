@@ -13,7 +13,7 @@
 #include "dji_sdk/dji_sdk.h"
 #include <iostream>
 #include <cstdio>
-#include "spherex.h"
+#include "dji_sdk_demo/spherex.h"
 #include "math.h"
 
 const float gravity = -2;
