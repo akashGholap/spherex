@@ -13,7 +13,7 @@
 #include "dji_sdk/dji_sdk.h"
 #include <iostream>
 #include <cstdio>
-#include "spherx.h"
+#include "spherex.h"
 #include "math.h"
 
 const float gravity = -2;
@@ -35,8 +35,8 @@ sensor_msgs::NavSatFix current_gps;
 geometry_msgs::Quaternion current_atti;
 geometry_msgs::Point current_local_pos;
 
-Mission square_mission;
-
+//Mission square_mission;
+robohop hopper;
 
 int main(int argc, char** argv)
 {
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
       std::cin>>x>>y>>z;
       hopping_result = false;
     }
-    hopping_result = hopex(x , y, z);
+    hopping_result = hopper.hopex(x , y, z);
 
 
   }
@@ -113,7 +113,7 @@ int main(int argc, char** argv)
 /coordinates. Accurate when distances are small.
 !*/
 
-bool hopex(float x, float y, float z)
+bool robohop::hopex(float x, float y, float z)
 {
   ros::Time start_time = ros::Time::now();
   bool obtain_control_result = obtain_control();
@@ -129,11 +129,13 @@ bool hopex(float x, float y, float z)
     Vz_current = Vz_start + gravity*(ros::time::now() - start_time);
     ros::spinOnce();
   }
-  landing_result = landing_initiate();
+  landing_result = this->landing_initiate();
   if(landing_result)
   {
     ROS_INFO("Congrats::SphereX Successfully Landed");
+
   }
+  return true;
 }
 void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
                          sensor_msgs::NavSatFix& target,
@@ -288,7 +290,7 @@ bool takeoff_land(int task)
   return true;
 }
 
-bool landing_initiate(void)
+bool robohop::landing_initiate(void)
 {
   dji_sdk::DroneTaskControl droneTaskControl;
 
