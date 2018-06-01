@@ -13,7 +13,10 @@
 #include "dji_sdk/dji_sdk.h"
 #include <iostream>
 #include <cstdio>
+#include "spherx.h"
+#include "math.h"
 
+const float gravity = -2;
 const float deg2rad = C_PI/180.0;
 const float rad2deg = 180.0/C_PI;
 
@@ -62,7 +65,7 @@ int main(int argc, char** argv)
   set_local_pos_reference    = nh.serviceClient<dji_sdk::SetLocalPosRef> ("dji_sdk/set_local_pos_ref");
 
   bool obtain_control_result = obtain_control();
-  //bool takeoff_result;
+  bool hopping_result = true;
   if (!set_local_position()) // We need this for height
   {
     ROS_ERROR("GPS health insufficient - No local frame reference for height. Exiting.");
@@ -85,22 +88,20 @@ int main(int argc, char** argv)
     //square_mission.start_local_position = current_local_pos;
     //square_mission.setTarget(0, 20, 3, 60);
     //square_mission.state = 1;
-  //  std::cout<<"Please Enter Velocity Commands and yaw rate";
-  //  std::cin>>x>>y>>z>>yaw;
+
 
   while(ros::ok())
   {
 
-    //ROS_INFO("##### Start %d....", 1 );
+    if(hopping_result)
+    {
+      std::cout<<"Please Enter next Velocity vector";
+      std::cin>>x>>y>>z;
+      hopping_result = false;
+    }
+    hopping_result = hopex(x , y, z);
 
-    sensor_msgs::Joy controlVelYawRate;
 
-    controlVelYawRate.axes.push_back(x);
-    controlVelYawRate.axes.push_back(y);
-    controlVelYawRate.axes.push_back(z);
-    controlVelYawRate.axes.push_back(yaw);
-    ctrlVelYawratePub.publish(controlVelYawRate);
-    ros::spinOnce();
   }
 
   return 0;
@@ -111,8 +112,30 @@ int main(int argc, char** argv)
 /*! Very simple calculation of local NED offset between two pairs of GPS
 /coordinates. Accurate when distances are small.
 !*/
-void
-localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
+
+bool hopex(float x, float y, float z)
+{
+  ros::Time start_time = ros::Time::now();
+  bool obtain_control_result = obtain_control();
+  bool landing_result;
+  Vz_start = Vz_current = z;
+  while((-Vz_current) <= 0.9*Vz_start)
+  {
+    sensor_msgs::Joy controlVelYawRate;
+    controlVelYawRate.axes.push_back(x);
+    controlVelYawRate.axes.push_back(y);
+    controlVelYawRate.axes.push_back(Vz_current);
+    ctrlVelYawratePub.publish(controlVelYawRate);
+    Vz_current = Vz_start + gravity*(ros::time::now() - start_time);
+    ros::spinOnce();
+  }
+  landing_result = landing_initiate();
+  if(landing_result)
+  {
+    ROS_INFO("Congrats::SphereX Successfully Landed");
+  }
+}
+void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
                          sensor_msgs::NavSatFix& target,
                          sensor_msgs::NavSatFix& origin)
 {
@@ -259,6 +282,23 @@ bool takeoff_land(int task)
   if(!droneTaskControl.response.result)
   {
     ROS_ERROR("takeoff_land fail");
+    return false;
+  }
+
+  return true;
+}
+
+bool landing_initiate(void)
+{
+  dji_sdk::DroneTaskControl droneTaskControl;
+
+  droneTaskControl.request.task = 6;
+
+  drone_task_service.call(droneTaskControl);
+
+  if(!droneTaskControl.response.result)
+  {
+    ROS_ERROR("landing failed");
     return false;
   }
 
