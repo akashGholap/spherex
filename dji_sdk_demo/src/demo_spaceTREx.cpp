@@ -129,7 +129,7 @@ bool Mission::hopex(float x, float y, float z)
     controlVelYawRate.axes.push_back(Vz_current);
     ctrlVelYawratePub.publish(controlVelYawRate);
     Vz_current = Vz_start + gravity*((float)ros::Time::now().toSec() - start_time);
-    ROS_INFO("x y and z %d %d %d",x,y,Vz_current);
+    ROS_INFO("x y and z %f %f %f",x,y,Vz_current);
     ros::spinOnce();
   }
   landing_result = landing_initiate();
