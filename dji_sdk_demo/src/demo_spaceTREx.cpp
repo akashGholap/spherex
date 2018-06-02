@@ -16,7 +16,7 @@
 //#include "dji_sdk_demo/spherex.h"
 #include "math.h"
 
-const float gravity = -2;
+const float gravity = -4.99;
 const float deg2rad = C_PI/180.0;
 const float rad2deg = 180.0/C_PI;
 
@@ -129,6 +129,7 @@ bool Mission::hopex(float x, float y, float z)
     controlVelYawRate.axes.push_back(Vz_current);
     ctrlVelYawratePub.publish(controlVelYawRate);
     Vz_current = Vz_start + gravity*((float)ros::Time::now().toSec() - start_time);
+    ROS_INFO("x y and z %d %d %d",x,y,Vz_current);
     ros::spinOnce();
   }
   landing_result = landing_initiate();
