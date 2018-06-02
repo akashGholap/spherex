@@ -117,7 +117,7 @@ int main(int argc, char** argv)
 bool Mission::hopex(float x, float y, float z)
 {
   //double start_time = ros::Time::now().toSec();
-  static ros::Time start_time = ros::Time::now();
+  ros::Time start_time = ros::Time::now();
   bool obtain_control_result = obtain_control();
 
   bool landing_result;
