@@ -101,7 +101,7 @@ int main(int argc, char** argv)
       hopping_result = false;
     }
     hopping_result = hopper.hopex(x , y, z);
-
+    ros::spinOnce();
 
   }
 
@@ -116,8 +116,10 @@ int main(int argc, char** argv)
 
 bool Mission::hopex(float x, float y, float z)
 {
-  float start_time = ros::Time::now().toSec();
+  //double start_time = ros::Time::now().toSec();
+  static ros::Time start_time = ros::Time::now();
   bool obtain_control_result = obtain_control();
+
   bool landing_result;
   float Vz_start = z;
   float Vz_current = z;
@@ -128,9 +130,12 @@ bool Mission::hopex(float x, float y, float z)
     controlVelYawRate.axes.push_back(y);
     controlVelYawRate.axes.push_back(Vz_current);
     ctrlVelYawratePub.publish(controlVelYawRate);
-    Vz_current = Vz_start + gravity*((float)ros::Time::now().toSec() - start_time);
+    ros::Duration elapsed_time = ros::Time::now() - start_time;
+    Vz_current = Vz_start + gravity*(elapsed_time.toSec());
     ROS_INFO("x y and z %f %f %f",x,y,Vz_current);
-    ros::spinOnce();
+    ROS_INFO("time %f", elapsed_time.toSec());
+
+
   }
   landing_result = landing_initiate();
   if(landing_result)
