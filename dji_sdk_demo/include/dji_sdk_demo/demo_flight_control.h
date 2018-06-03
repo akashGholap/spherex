@@ -115,4 +115,6 @@ bool set_local_position();
 
 bool landing_initiate(void);
 
+bool arm_motors(void);
+
 #endif // DEMO_FLIGHT_CONTROL_H
