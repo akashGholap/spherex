@@ -11,6 +11,7 @@
 
 #include "dji_sdk_demo/demo_flight_control.h"
 #include "dji_sdk/dji_sdk.h"
+#include <dji_sdk/DroneArmControl.h>
 #include <iostream>
 #include <cstdio>
 //#include "dji_sdk_demo/spherex.h"
@@ -23,6 +24,7 @@ const float rad2deg = 180.0/C_PI;
 ros::ServiceClient set_local_pos_reference;
 ros::ServiceClient sdk_ctrl_authority_service;
 ros::ServiceClient drone_task_service;
+ros::ServiceClient drone_arm_service;
 ros::ServiceClient query_version_service;
 
 ros::Publisher ctrlPosYawPub;
@@ -61,6 +63,7 @@ int main(int argc, char** argv)
   // Basic services
   sdk_ctrl_authority_service = nh.serviceClient<dji_sdk::SDKControlAuthority> ("dji_sdk/sdk_control_authority");
   drone_task_service         = nh.serviceClient<dji_sdk::DroneTaskControl>("dji_sdk/drone_task_control");
+  drone_arm_service          = nh.serviceClient<dji_sdk::DroneArmControl>("dji_sdk/drone_task_control");
   query_version_service      = nh.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
   set_local_pos_reference    = nh.serviceClient<dji_sdk::SetLocalPosRef> ("dji_sdk/set_local_pos_ref");
 
@@ -302,7 +305,7 @@ bool arm_motors()
 {
   dji_sdk::DroneArmControl droneArmControl;
   droneArmControl.request.arm = 1;
-  drone_task_service.call(droneArmControl);
+  drone_arm_service.call(droneArmControl);
   if(!droneArmControl.response.result)
   {
     ROS_ERROR("Arming Failed");
