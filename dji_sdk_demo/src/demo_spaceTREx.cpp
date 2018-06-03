@@ -119,11 +119,11 @@ bool Mission::hopex(float x, float y, float z)
   //double start_time = ros::Time::now().toSec();
   ros::Time start_time = ros::Time::now();
   bool obtain_control_result = obtain_control();
-
+  bool arming = arm_motors();
   bool landing_result;
   float Vz_start = z;
   float Vz_current = z;
-  while((-1)*(Vz_current) <= 0.9*Vz_start)
+  while(((-1)*(Vz_current) <= 0.70*Vz_start)&&arming)
   {
     sensor_msgs::Joy controlVelYawRate;
     controlVelYawRate.axes.push_back(x);
@@ -138,12 +138,29 @@ bool Mission::hopex(float x, float y, float z)
 
   }
   landing_result = landing_initiate();
-  if(landing_result)
+  if(landing_result&&arming)
   {
     ROS_INFO("Congrats::SphereX Successfully Landed");
-
+    return true;
   }
-  return true;
+  else if(!arming)
+  {
+    return false;
+  }
+  else if((!landing_result)&&arming)
+  {
+    while(!landing_initiate())
+    {
+      sensor_msgs::Joy controlVelYawRate;
+      controlVelYawRate.axes.push_back(0);
+      controlVelYawRate.axes.push_back(0);
+      controlVelYawRate.axes.push_back(0);
+      ctrlVelYawratePub.publish(controlVelYawRate);
+      ROS_INFO("HOLDON::SphereX is trying to execute landing sequence");
+    }
+    ROS_INFO("Congrats::SphereX Successfully Landed");
+    return true;
+  }
 }
 void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
                          sensor_msgs::NavSatFix& target,
@@ -280,7 +297,20 @@ void Mission::step()
   }
 
 }
-
+//--------xxxx--------xxxxx-----ARMING of Motors---xxxx---------xxxx------------xxxx----------------------------
+bool arm_motors()
+{
+  dji_sdk::DroneArmControl droneArmControl;
+  droneArmControl.request.arm = 1;
+  drone_task_service.call(droneArmControl);
+  if(!droneArmControl.response.result)
+  {
+    ROS_ERROR("Arming Failed");
+      return false;
+  }
+  return true;
+}
+//-----xxxxxxxxx-------------------xxxxxxxxxxxxxxx-----------xxxxxxxxxx-------------xxx---------------------------
 bool takeoff_land(int task)
 {
   dji_sdk::DroneTaskControl droneTaskControl;
