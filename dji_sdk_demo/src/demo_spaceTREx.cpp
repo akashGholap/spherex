@@ -103,7 +103,7 @@ int main(int argc, char** argv)
       std::cin>>x>>y>>z;
       hopping_result = false;
     }
-    disarm_motors();
+    //disarm_motors();
     hopping_result = hopper.hopex(x , y, z);
     ros::spinOnce();
 
@@ -122,12 +122,12 @@ bool Mission::hopex(float x, float y, float z)
 {
   //double start_time = ros::Time::now().toSec();
   bool obtain_control_result = obtain_control();
-  bool arming = arm_motors();
+//  bool arming = arm_motors();
   bool landing_result;
   float Vz_start = z;
   float Vz_current = z;
   ros::Time start_time = ros::Time::now();
-  while(((-1)*(Vz_current) <= 0.70*Vz_start)&&arming&&obtain_control_result)
+  while(((-1)*(Vz_current) <= 0.70*Vz_start))///*&&arming&&*/obtain_control_result)
   {
     sensor_msgs::Joy controlVelYawRate;
     controlVelYawRate.axes.push_back(x);
@@ -142,9 +142,9 @@ bool Mission::hopex(float x, float y, float z)
 
   }
 
-  if((!arming)||(!obtain_control_result))
+  if(/*(!arming)||*/(!obtain_control_result))
   {
-    disarm_motors();
+    //disarm_motors();
     return false;
   }
   else
@@ -163,11 +163,11 @@ bool Mission::hopex(float x, float y, float z)
       ctrlVelYawratePub.publish(controlVelYawRate);
       ROS_INFO("HOLDON::SphereX is trying to execute landing sequence");
     }
-    disarm_motors();
+    //disarm_motors();
     ROS_INFO("Congrats::SphereX Successfully Landed");
     return true;
   }
-  disarm_motors();
+  //disarm_motors();
   ROS_INFO("Congrats::SphereX Successfully Landed");
   return true;
 }
