@@ -120,13 +120,13 @@ int main(int argc, char** argv)
 bool Mission::hopex(float x, float y, float z)
 {
   //double start_time = ros::Time::now().toSec();
-  ros::Time start_time = ros::Time::now();
   bool obtain_control_result = obtain_control();
   bool arming = arm_motors();
   bool landing_result;
   float Vz_start = z;
   float Vz_current = z;
-  while(((-1)*(Vz_current) <= 0.70*Vz_start)&&arming)
+  ros::Time start_time = ros::Time::now();
+  while(((-1)*(Vz_current) <= 0.70*Vz_start)&&arming&&obtain_control_result)
   {
     sensor_msgs::Joy controlVelYawRate;
     controlVelYawRate.axes.push_back(x);
@@ -140,17 +140,17 @@ bool Mission::hopex(float x, float y, float z)
 
 
   }
-  landing_result = landing_initiate();
-  if(landing_result&&arming)
-  {
-    ROS_INFO("Congrats::SphereX Successfully Landed");
-    return true;
-  }
-  else if(!arming)
+
+  if((!arming)||(!obtain_control_result))
   {
     return false;
   }
-  else if((!landing_result)&&arming)
+  else if(arming&&obtain_control_result)
+  {
+    landing_result = landing_initiate();
+
+  }
+  if((!landing_result)&&arming)
   {
     while(!landing_initiate())
     {
@@ -164,6 +164,8 @@ bool Mission::hopex(float x, float y, float z)
     ROS_INFO("Congrats::SphereX Successfully Landed");
     return true;
   }
+  ROS_INFO("Congrats::SphereX Successfully Landed");
+  return true;
 }
 void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
                          sensor_msgs::NavSatFix& target,
