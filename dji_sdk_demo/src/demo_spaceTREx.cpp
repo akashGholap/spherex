@@ -145,12 +145,12 @@ bool Mission::hopex(float x, float y, float z)
   {
     return false;
   }
-  else if(arming&&obtain_control_result)
+  else
   {
     landing_result = landing_initiate();
 
   }
-  if((!landing_result)&&arming)
+  if((!landing_result))
   {
     while(!landing_initiate())
     {
