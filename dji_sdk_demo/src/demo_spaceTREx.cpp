@@ -103,6 +103,7 @@ int main(int argc, char** argv)
       std::cin>>x>>y>>z;
       hopping_result = false;
     }
+    disarm_motors();
     hopping_result = hopper.hopex(x , y, z);
     ros::spinOnce();
 
@@ -143,6 +144,7 @@ bool Mission::hopex(float x, float y, float z)
 
   if((!arming)||(!obtain_control_result))
   {
+    disarm_motors();
     return false;
   }
   else
@@ -161,9 +163,11 @@ bool Mission::hopex(float x, float y, float z)
       ctrlVelYawratePub.publish(controlVelYawRate);
       ROS_INFO("HOLDON::SphereX is trying to execute landing sequence");
     }
+    disarm_motors();
     ROS_INFO("Congrats::SphereX Successfully Landed");
     return true;
   }
+  disarm_motors();
   ROS_INFO("Congrats::SphereX Successfully Landed");
   return true;
 }
@@ -311,6 +315,19 @@ bool arm_motors()
   if(!droneArmControl.response.result)
   {
     ROS_ERROR("Arming Failed");
+      return false;
+  }
+  return true;
+}
+
+bool disarm_motors()
+{
+  dji_sdk::DroneArmControl droneArmControl;
+  droneArmControl.request.arm = 0;
+  drone_arm_service.call(droneArmControl);
+  if(!droneArmControl.response.result)
+  {
+    ROS_ERROR("Disarming Failed");
       return false;
   }
   return true;
