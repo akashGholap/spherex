@@ -122,7 +122,7 @@ bool Mission::hopex(float x, float y, float z)
 {
   //double start_time = ros::Time::now().toSec();
 
-  bool arming = arm_motors();
+  while(!arm_motors());
   bool obtain_control_result = obtain_control();
   bool landing_result;
   float Vz_start = z;
@@ -137,8 +137,8 @@ bool Mission::hopex(float x, float y, float z)
     ctrlVelYawratePub.publish(controlVelYawRate);
     ros::Duration elapsed_time = ros::Time::now() - start_time;
     Vz_current = Vz_start + gravity*(elapsed_time.toSec());
-    ROS_INFO("x y and z %f %f %f",x,y,Vz_current);
-    ROS_INFO("time %f", elapsed_time.toSec());
+    //ROS_INFO("x y and z %f %f %f",x,y,Vz_current);
+    //ROS_INFO("time %f", elapsed_time.toSec());
 
 
   }
