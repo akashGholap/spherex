@@ -128,7 +128,7 @@ bool Mission::hopex(float x, float y, float z)
   float Vz_start = z;
   float Vz_current = z;
   ros::Time start_time = ros::Time::now();
-  while(((-1)*(Vz_current) <= 0.75*Vz_start)&&arming&&obtain_control_result)
+  while(((-1)*(Vz_current) <= 0.75*Vz_start)&&obtain_control_result)
   {
     sensor_msgs::Joy controlVelYawRate;
     controlVelYawRate.axes.push_back(x);
@@ -143,7 +143,7 @@ bool Mission::hopex(float x, float y, float z)
 
   }
 
-  if((!arming)||(!obtain_control_result))
+  if((!obtain_control_result))
   {
     //disarm_motors();
     return false;
