@@ -122,7 +122,7 @@ bool Mission::hopex(float x, float y, float z)
 {
   //double start_time = ros::Time::now().toSec();
 
-  while(!arm_motors());
+  while(arm_motors());
   bool obtain_control_result = obtain_control();
   bool landing_result;
   float Vz_start = z;
