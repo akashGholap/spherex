@@ -237,9 +237,7 @@ void Mission::step()
   zCmd = start_local_position.z + target_offset_z;
 
 
-  /*!
-   * @brief: if we already started breaking, keep break for 50 sample (1sec)
-   *         and call it done, else we send normal command
+
 
 
   if (break_counter > 50)
