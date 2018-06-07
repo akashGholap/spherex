@@ -124,7 +124,7 @@ bool Mission::hopex(float x, float y, float z)
   //double start_time = ros::Time::now().toSec();
 
   bool arming =  arm_motors();
-  ros::Duration(0.04).sleep();
+  ros::Duration(0.5).sleep();
   ros::spinOnce();
   //bool obtain_control_result = obtain_control();
   bool landing_result;
@@ -143,6 +143,7 @@ bool Mission::hopex(float x, float y, float z)
     Vz_current = Vz_start + gravity*(elapsed_time.toSec());
     //ROS_INFO("x y and z %f %f %f",x,y,Vz_current);
     //ROS_INFO("time %f", elapsed_time.toSec())
+    ros::spinOnce();
 
   }
 
@@ -153,6 +154,8 @@ bool Mission::hopex(float x, float y, float z)
   else
   {
    bool landing_result = landing_initiate();
+   ros::Duration(0.5).sleep();
+   ros::spinOnce();
 
   }
   if((landing_result))
