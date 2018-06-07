@@ -131,7 +131,7 @@ bool Mission::hopex(float x, float y, float z)
   float Vz_start = z;
   float Vz_current = z;
   ros::Time start_time = ros::Time::now();
-  while(((-1)*(Vz_current) <= 0.75*Vz_start)&&arming)
+  while(((-1)*(Vz_current) <= 0.70*Vz_start)&&arming)
   {
     sensor_msgs::Joy controlVelYawRate;
     controlVelYawRate.axes.push_back(x);
@@ -152,10 +152,7 @@ bool Mission::hopex(float x, float y, float z)
   }
   else
   {
-    landing_result = landing_initiate();
-  }
-  if((!landing_result))
-  {
+    //landing_result = landing_initiate();
     while(!landing_initiate())
     {
       sensor_msgs::Joy controlVelYawRate;
@@ -163,15 +160,11 @@ bool Mission::hopex(float x, float y, float z)
       controlVelYawRate.axes.push_back(0);
       controlVelYawRate.axes.push_back(0);
       ctrlVelYawratePub.publish(controlVelYawRate);
-      ROS_INFO("HOLDON::SphereX is trying to execute landing sequence");
+      ROS_INFO("HOLDON::SphereX is executing landing sequence");
     }
-    //disarm_motors();
     ROS_INFO("Congrats::SphereX Successfully Landed");
     return true;
   }
-  //disarm_motors();
-  ROS_INFO("Congrats::SphereX Successfully Landed");
-  return true;
 }
 //-------------------xxxxxx---------------------xxxxxx-----------------------xxxxxxx------------------------xxxxxxxx-----------------------xxxxxx----------------------------xxxxxxx
 void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
