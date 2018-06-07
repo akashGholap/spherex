@@ -197,7 +197,7 @@ geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
   R_FLU2ENU.getRPY(ans.x, ans.y, ans.z);
   return ans;
 }
-/*void Mission::step()
+void Mission::step()
 {
   static int info_counter = 0;
   geometry_msgs::Vector3     localOffset;
@@ -240,8 +240,8 @@ geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
   /*!
    * @brief: if we already started breaking, keep break for 50 sample (1sec)
    *         and call it done, else we send normal command
-   */
-/*
+
+
   if (break_counter > 50)
   {
     ROS_INFO("##### Route %d finished....", state);
@@ -310,7 +310,7 @@ geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
   }
 
 }
-*/
+
 //--------xxxx--------xxxxx-----ARMING of Motors---xxxx---------xxxx------------xxxx----------------------------
 bool arm_motors()
 {
