@@ -241,7 +241,7 @@ geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
    * @brief: if we already started breaking, keep break for 50 sample (1sec)
    *         and call it done, else we send normal command
    */
-
+/*
   if (break_counter > 50)
   {
     ROS_INFO("##### Route %d finished....", state);
