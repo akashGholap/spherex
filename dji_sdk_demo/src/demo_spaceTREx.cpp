@@ -92,8 +92,7 @@ int main(int argc, char** argv)
     //square_mission.start_local_position = current_local_pos;
     //square_mission.setTarget(0, 20, 3, 60);
     //square_mission.state = 1;
-    arm_motors();
-    ros::Duration(0.01).sleep();
+
 
   while(ros::ok())
   {
@@ -104,8 +103,7 @@ int main(int argc, char** argv)
       std::cin>>x>>y>>z;
       hopping_result = false;
     }
-    disarm_motors();
-    ros::Duration(0.01).sleep();
+
     hopping_result = hopper.hopex(x , y, z);
     ros::spinOnce();
 
@@ -149,7 +147,8 @@ bool Mission::hopex(float x, float y, float z)
 
   if(!arming)
   {
-    //disarm_motors();
+    disarm_motors();
+    ros::Duration(0.01).sleep();
     return false;
   }
   else
