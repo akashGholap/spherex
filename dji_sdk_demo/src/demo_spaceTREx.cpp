@@ -103,7 +103,7 @@ int main(int argc, char** argv)
       std::cin>>x>>y>>z;
       hopping_result = false;
     }
-    disarm_motors();
+    //disarm_motors();
     hopping_result = hopper.hopex(x , y, z);
     ros::spinOnce();
 
@@ -117,18 +117,20 @@ int main(int argc, char** argv)
 /*! Very simple calculation of local NED offset between two pairs of GPS
 /coordinates. Accurate when distances are small.
 !*/
-
+//----------------------------------xxxxxx---------"Hopping Executer"---------------xxxxxxx------------------------xxxxxxx-----------------------xxxxxxx--------------xxxxxx
 bool Mission::hopex(float x, float y, float z)
 {
   //double start_time = ros::Time::now().toSec();
 
-  while(arm_motors());
-  bool obtain_control_result = obtain_control();
+  bool arming =  arm_motors();
+  ros::Duration(0.01).sleep();
+  ros::spinOnce();
+  //bool obtain_control_result = obtain_control();
   bool landing_result;
   float Vz_start = z;
   float Vz_current = z;
   ros::Time start_time = ros::Time::now();
-  while(((-1)*(Vz_current) <= 0.75*Vz_start)&&obtain_control_result)
+  while(((-1)*(Vz_current) <= 0.75*Vz_start)&&arming)
   {
     sensor_msgs::Joy controlVelYawRate;
     controlVelYawRate.axes.push_back(x);
@@ -143,7 +145,7 @@ bool Mission::hopex(float x, float y, float z)
 
   }
 
-  if((!obtain_control_result))
+  if(!arming)
   {
     //disarm_motors();
     return false;
@@ -151,7 +153,8 @@ bool Mission::hopex(float x, float y, float z)
   else
   {
     landing_result = landing_initiate();
-
+    ros::Duration(0.01).sleep();
+    ros::spinOnce();
   }
   if((!landing_result))
   {
@@ -172,6 +175,7 @@ bool Mission::hopex(float x, float y, float z)
   ROS_INFO("Congrats::SphereX Successfully Landed");
   return true;
 }
+//-------------------xxxxxx---------------------xxxxxx-----------------------xxxxxxx------------------------xxxxxxxx-----------------------xxxxxx----------------------------xxxxxxx
 void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
                          sensor_msgs::NavSatFix& target,
                          sensor_msgs::NavSatFix& origin)
@@ -193,8 +197,7 @@ geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
   R_FLU2ENU.getRPY(ans.x, ans.y, ans.z);
   return ans;
 }
-
-void Mission::step()
+/*void Mission::step()
 {
   static int info_counter = 0;
   geometry_msgs::Vector3     localOffset;
@@ -307,6 +310,7 @@ void Mission::step()
   }
 
 }
+*/
 //--------xxxx--------xxxxx-----ARMING of Motors---xxxx---------xxxx------------xxxx----------------------------
 bool arm_motors()
 {
