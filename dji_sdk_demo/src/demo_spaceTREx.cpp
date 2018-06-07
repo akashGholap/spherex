@@ -103,7 +103,7 @@ int main(int argc, char** argv)
       std::cin>>x>>y>>z;
       hopping_result = false;
     }
-    //disarm_motors();
+    disarm_motors();
     hopping_result = hopper.hopex(x , y, z);
     ros::spinOnce();
 
@@ -124,7 +124,7 @@ bool Mission::hopex(float x, float y, float z)
 
   bool arming =  arm_motors();
   ros::Duration(0.01).sleep();
-  ros::spinOnce();
+  //ros::spinOnce();
   //bool obtain_control_result = obtain_control();
   bool landing_result;
   float Vz_start = z;
@@ -153,8 +153,6 @@ bool Mission::hopex(float x, float y, float z)
   else
   {
     landing_result = landing_initiate();
-    ros::Duration(0.01).sleep();
-    ros::spinOnce();
   }
   if((!landing_result))
   {
