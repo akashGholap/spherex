@@ -102,6 +102,7 @@ int main(int argc, char** argv)
       std::cout<<"Please Enter next Velocity vector";
       std::cin>>x>>y>>z;
       hopping_result = false;
+      
     }
 
     hopping_result = hopper.hopex(x , y, z);
@@ -123,7 +124,7 @@ bool Mission::hopex(float x, float y, float z)
   //double start_time = ros::Time::now().toSec();
 
   bool arming =  arm_motors();
-  ros::Duration(0.01).sleep();
+  ros::Duration(0.02).sleep();
   //ros::spinOnce();
   //bool obtain_control_result = obtain_control();
   bool landing_result;
@@ -147,8 +148,6 @@ bool Mission::hopex(float x, float y, float z)
 
   if(!arming)
   {
-    disarm_motors();
-    ros::Duration(0.01).sleep();
     return false;
   }
   else
