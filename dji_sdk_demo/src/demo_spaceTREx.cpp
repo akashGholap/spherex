@@ -122,10 +122,11 @@ int main(int argc, char** argv)
 bool Mission::hopex(float x, float y, float z, float yaw)
 {
   //double start_time = ros::Time::now().toSec();
+  bool obtain_control_result = obtain_control();
   bool arming =  arm_motors();
   ros::Duration(0.25).sleep();
   ros::spinOnce();
-  bool obtain_control_result = obtain_control();
+
 
   //  bool obtain_control_result = obtain_control();
   bool landing_result;
