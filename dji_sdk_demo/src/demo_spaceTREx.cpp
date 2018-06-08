@@ -67,7 +67,7 @@ int main(int argc, char** argv)
   query_version_service      = nh.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
   set_local_pos_reference    = nh.serviceClient<dji_sdk::SetLocalPosRef> ("dji_sdk/set_local_pos_ref");
 
-  bool obtain_control_result = obtain_control();
+  //bool obtain_control_result = obtain_control();
   bool hopping_result = true;
 
   if (!set_local_position()) // We need this for height
@@ -122,17 +122,19 @@ int main(int argc, char** argv)
 bool Mission::hopex(float x, float y, float z, float yaw)
 {
   //double start_time = ros::Time::now().toSec();
-  bool obtain_control_result = obtain_control();
   bool arming =  arm_motors();
-  ros::Duration(0.5).sleep();
+  ros::Duration(0.25).sleep();
   ros::spinOnce();
+  bool obtain_control_result = obtain_control();
+
   //  bool obtain_control_result = obtain_control();
   bool landing_result;
   float Vz_start = z;
   float Vz_current = z;
   ros::Time start_time = ros::Time::now();
-  while(((-1)*(Vz_current) <= 0.70*Vz_start)&&arming)
-  {
+  if(arming&&obtain_control_result)
+  { while(1)
+    {
     sensor_msgs::Joy controlVelYawRate;
     controlVelYawRate.axes.push_back(x);
     controlVelYawRate.axes.push_back(y);
@@ -143,8 +145,13 @@ bool Mission::hopex(float x, float y, float z, float yaw)
 
     Vz_current = Vz_start + gravity*(elapsed_time.toSec());
     //ROS_INFO("x y and z %f %f %f",x,y,Vz_current);
+    if((-1)*(Vz_current) <= 0.70*Vz_start))
+      break;
+
     //ROS_INFO("time %f", elapsed_time.toSec())
     ros::spinOnce();
+    }
+    bool landing_result = landing_initiate();
 
   }
 
@@ -152,20 +159,11 @@ bool Mission::hopex(float x, float y, float z, float yaw)
   {
     return false;
   }
-  else
+  else if(landing_result)
   {
-   bool landing_result = landing_initiate();
-   //ros::Duration(0.5).sleep();
-   ros::spinOnce();
-
+   ROS_INFO("SphereX Landed Safely")
+   //ros::spinOnce();
   }
-  if((landing_result))
-  {
-
-    ROS_INFO("Congrats::SphereX Successfully Landed");
-    //return true;
-  }
-  
   return true;
 }
 //-------------------xxxxxx---------------------xxxxxx-----------------------xxxxxxx------------------------xxxxxxxx-----------------------xxxxxx----------------------------xxxxxxx
@@ -302,6 +300,23 @@ void Mission::step()
 
 }
 
+
+bool landing_initiate(void)
+{
+  dji_sdk::DroneTaskControl droneTaskControl;
+
+  droneTaskControl.request.task = 6;
+
+  drone_task_service.call(droneTaskControl);
+
+  if(!droneTaskControl.response.result)
+  {
+    ROS_ERROR("landing failed");
+    return false;
+  }
+
+  return true;
+}
 //--------xxxx--------xxxxx-----ARMING of Motors and Landing---xxxx---------xxxx------------xxxx----------------------------
 bool arm_motors()
 {
@@ -329,22 +344,7 @@ bool disarm_motors()
   return true;
 }
 
-bool landing_initiate(void)
-{
-  dji_sdk::DroneTaskControl droneTaskControl;
 
-  droneTaskControl.request.task = 6;
-
-  drone_task_service.call(droneTaskControl);
-
-  if(!droneTaskControl.response.result)
-  {
-    ROS_ERROR("landing failed");
-    return false;
-  }
-
-  return true;
-}
 
 //-----xxxxxxxxx-------------------xxxxxxxxxxxxxxx-----------xxxxxxxxxx-------------xxx---------------------------
 bool takeoff_land(int task)
