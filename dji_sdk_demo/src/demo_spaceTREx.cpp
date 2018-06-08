@@ -129,7 +129,7 @@ bool Mission::hopex(float x, float y, float z, float yaw)
 
 
   //  bool obtain_control_result = obtain_control();
-  bool landing_result;
+//  bool landing_result;
   float Vz_start = z;
   float Vz_current = z;
   ros::Time start_time = ros::Time::now();
