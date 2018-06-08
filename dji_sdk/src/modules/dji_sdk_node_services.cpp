@@ -110,8 +110,15 @@ DJISDKNode::sdkCtrlAuthorityCallback(
 
   if (ACK::getError(ack))
   {
+    if (response.ack_data == 2) //added to get already armed does not affect the system start
+     {
+       response.result = true;
+     }    /* code */
+    else
+    {
     response.result = false;
     ACK::getErrorCodeMessage(ack, __func__);
+    }
   }
   else
   {
