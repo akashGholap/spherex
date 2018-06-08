@@ -58,7 +58,7 @@ int main(int argc, char** argv)
   // We could use dji_sdk/flight_control_setpoint_ENUvelocity_yawrate here, but
   // we use dji_sdk/flight_control_setpoint_generic to demonstrate how to set the flag
   // properly in function Mission::step()
-  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 500);
+  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 100);
 
   // Basic services
   sdk_ctrl_authority_service = nh.serviceClient<dji_sdk::SDKControlAuthority> ("dji_sdk/sdk_control_authority");
@@ -124,8 +124,7 @@ bool Mission::hopex(float x, float y, float z, float yaw)
   //double start_time = ros::Time::now().toSec();
 
   bool arming =  arm_motors();
-  ros::Duration(0.5).sleep();
-  ros::spinOnce();
+
 
 
   //  bool obtain_control_result = obtain_control();
@@ -133,7 +132,7 @@ bool Mission::hopex(float x, float y, float z, float yaw)
   float Vz_start = z;
   float Vz_current = z;
   ros::Time start_time = ros::Time::now();
-   while(arming)
+   while(((-1)*(Vz_current) <= 0.70*Vz_start)&&arming)
     {
     sensor_msgs::Joy controlVelYawRate;
     controlVelYawRate.axes.push_back(x);
@@ -145,13 +144,6 @@ bool Mission::hopex(float x, float y, float z, float yaw)
 
     Vz_current = Vz_start + gravity*(elapsed_time.toSec());
     //ROS_INFO("x y and z %f %f %f",x,y,Vz_current);
-    if(!((-1)*(Vz_current) <= 0.70*Vz_start))
-    {
-        break;
-    }
-
-    //ROS_INFO("time %f", elapsed_time.toSec())
-  //  ros::spinOnce();
     }
 
 
@@ -162,8 +154,6 @@ bool Mission::hopex(float x, float y, float z, float yaw)
   else
   {
    landing_initiate();
-   ros::Duration(0.5).sleep();
-   ros::spinOnce();
    ROS_INFO("SphereX Landed Safely");
    return true;//ros::spinOnce();
   }
