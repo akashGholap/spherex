@@ -133,7 +133,7 @@ bool Mission::hopex(float x, float y, float z, float yaw)
   float Vz_start = z;
   float Vz_current = z;
   ros::Time start_time = ros::Time::now();
-  if(arming&&obtain_control_result)
+  if(arming)
   { while(1)
     {
     sensor_msgs::Joy controlVelYawRate;
