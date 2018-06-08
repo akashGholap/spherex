@@ -146,17 +146,12 @@ bool Mission::hopex(float x, float y, float z, float yaw)
     ROS_INFO("x y and z %f %f %f",x,y,Vz_current);
     }
 
+e
 
-  if(!arming)
-  {
-    return false;
-  }
-  else
-  {
    landing_initiate();
 //   ROS_INFO("SphereX Landed Safely");
    return true;//ros::spinOnce()2 2;
-  }
+  
 
 }
 //-------------------xxxxxx---------------------xxxxxx-----------------------xxxxxxx------------------------xxxxxxxx-----------------------xxxxxx----------------------------xxxxxxx
