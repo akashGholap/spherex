@@ -161,7 +161,7 @@ bool Mission::hopex(float x, float y, float z, float yaw)
   }
   else if(landing_result)
   {
-   ROS_INFO("SphereX Landed Safely")
+   ROS_INFO("SphereX Landed Safely");
    //ros::spinOnce();
   }
   return true;
