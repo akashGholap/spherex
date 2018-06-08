@@ -147,8 +147,8 @@ DJISDKNode::setLocalPosRefCallback(dji_sdk::SetLocalPosRef::Request &request,
   {
     ROS_INFO("Not enough GPS Satellites. ");
     ROS_INFO("Cannot set Local Position reference");
-    local_pos_ref_set = false;
-    response.result = false;
+    local_pos_ref_set = false;    //it was false**
+    response.result = false;     // it was false**
   }
   return true;
 }

@@ -58,7 +58,7 @@ int main(int argc, char** argv)
   // We could use dji_sdk/flight_control_setpoint_ENUvelocity_yawrate here, but
   // we use dji_sdk/flight_control_setpoint_generic to demonstrate how to set the flag
   // properly in function Mission::step()
-  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 1000);
+  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 500);
 
   // Basic services
   sdk_ctrl_authority_service = nh.serviceClient<dji_sdk::SDKControlAuthority> ("dji_sdk/sdk_control_authority");
@@ -100,12 +100,12 @@ int main(int argc, char** argv)
     if(hopping_result)
     {
       std::cout<<"Please Enter next Velocity vector";
-      std::cin>>x>>y>>z;
+      std::cin>>x>>y>>z>>yaw;
       hopping_result = false;
 
     }
 
-    hopping_result = hopper.hopex(x , y, z);
+    hopping_result = hopper.hopex(x , y, z, yaw);
     ros::spinOnce();
 
   }
@@ -119,14 +119,14 @@ int main(int argc, char** argv)
 /coordinates. Accurate when distances are small.
 !*/
 //----------------------------------xxxxxx---------"Hopping Executer"---------------xxxxxxx------------------------xxxxxxx-----------------------xxxxxxx--------------xxxxxx
-bool Mission::hopex(float x, float y, float z)
+bool Mission::hopex(float x, float y, float z, float yaw)
 {
   //double start_time = ros::Time::now().toSec();
-
+  bool obtain_control_result = obtain_control();
   bool arming =  arm_motors();
   ros::Duration(0.5).sleep();
   ros::spinOnce();
-  //bool obtain_control_result = obtain_control();
+  //  bool obtain_control_result = obtain_control();
   bool landing_result;
   float Vz_start = z;
   float Vz_current = z;
@@ -137,6 +137,7 @@ bool Mission::hopex(float x, float y, float z)
     controlVelYawRate.axes.push_back(x);
     controlVelYawRate.axes.push_back(y);
     controlVelYawRate.axes.push_back(Vz_current);
+    controlVelYawRate.axes.push_back(yaw);
     ctrlVelYawratePub.publish(controlVelYawRate);
     ros::Duration elapsed_time = ros::Time::now() - start_time;
 
@@ -154,7 +155,7 @@ bool Mission::hopex(float x, float y, float z)
   else
   {
    bool landing_result = landing_initiate();
-   ros::Duration(0.5).sleep();
+   //ros::Duration(0.5).sleep();
    ros::spinOnce();
 
   }
@@ -164,6 +165,7 @@ bool Mission::hopex(float x, float y, float z)
     ROS_INFO("Congrats::SphereX Successfully Landed");
     //return true;
   }
+  
   return true;
 }
 //-------------------xxxxxx---------------------xxxxxx-----------------------xxxxxxx------------------------xxxxxxxx-----------------------xxxxxx----------------------------xxxxxxx
