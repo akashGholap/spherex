@@ -123,7 +123,7 @@ bool Mission::hopex(float x, float y, float z, float yaw)
 {
   //double start_time = ros::Time::now().toSec();
 
-  bool arming =  arm_motors();
+  //bool arming =  arm_motors();
 
 
 
@@ -154,7 +154,7 @@ bool Mission::hopex(float x, float y, float z, float yaw)
   else
   {
    landing_initiate();
-   ROS_INFO("SphereX Landed Safely");
+//   ROS_INFO("SphereX Landed Safely");
    return true;//ros::spinOnce()2 2;
   }
 
