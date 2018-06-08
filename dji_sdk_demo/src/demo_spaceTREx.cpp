@@ -132,7 +132,7 @@ bool Mission::hopex(float x, float y, float z, float yaw)
   float Vz_start = z;
   float Vz_current = z;
   ros::Time start_time = ros::Time::now();
-   while(((-1)*(Vz_current) <= 0.90*Vz_start)&&arming)
+   while(((-1)*(Vz_current) <= 0.90*Vz_start))
     {
     sensor_msgs::Joy controlVelYawRate;
     controlVelYawRate.axes.push_back(x);
@@ -146,12 +146,11 @@ bool Mission::hopex(float x, float y, float z, float yaw)
     ROS_INFO("x y and z %f %f %f",x,y,Vz_current);
     }
 
-e
 
    landing_initiate();
 //   ROS_INFO("SphereX Landed Safely");
    return true;//ros::spinOnce()2 2;
-  
+
 
 }
 //-------------------xxxxxx---------------------xxxxxx-----------------------xxxxxxx------------------------xxxxxxxx-----------------------xxxxxx----------------------------xxxxxxx
