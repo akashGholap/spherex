@@ -145,7 +145,7 @@ bool Mission::hopex(float x, float y, float z, float yaw)
 
     Vz_current = Vz_start + gravity*(elapsed_time.toSec());
     //ROS_INFO("x y and z %f %f %f",x,y,Vz_current);
-    if((-1)*(Vz_current) <= 0.70*Vz_start))
+    if((-1)*(Vz_current) <= 0.70*Vz_start)
       break;
 
     //ROS_INFO("time %f", elapsed_time.toSec())
