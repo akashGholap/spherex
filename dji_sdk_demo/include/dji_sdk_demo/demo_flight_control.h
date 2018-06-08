@@ -82,7 +82,7 @@ public:
     finished = false;
   }
 
- bool hopex(float, float, float);
+ bool hopex(float, float, float, float);
 };
 
 void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
