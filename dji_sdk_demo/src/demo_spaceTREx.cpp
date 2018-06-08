@@ -67,7 +67,7 @@ int main(int argc, char** argv)
   query_version_service      = nh.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
   set_local_pos_reference    = nh.serviceClient<dji_sdk::SetLocalPosRef> ("dji_sdk/set_local_pos_ref");
 
-  //bool obtain_control_result = obtain_control();
+  bool obtain_control_result = obtain_control();
   bool hopping_result = true;
 
   if (!set_local_position()) // We need this for height
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 bool Mission::hopex(float x, float y, float z, float yaw)
 {
   //double start_time = ros::Time::now().toSec();
-  bool obtain_control_result = obtain_control();
+
   bool arming =  arm_motors();
   ros::Duration(0.25).sleep();
   ros::spinOnce();
