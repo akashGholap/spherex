@@ -124,7 +124,7 @@ bool Mission::hopex(float x, float y, float z, float yaw)
   //double start_time = ros::Time::now().toSec();
 
   bool arming =  arm_motors();
-  ros::Duration(0.25).sleep();
+  ros::Duration(0.5).sleep();
   ros::spinOnce();
 
 
@@ -133,8 +133,7 @@ bool Mission::hopex(float x, float y, float z, float yaw)
   float Vz_start = z;
   float Vz_current = z;
   ros::Time start_time = ros::Time::now();
-  if(arming)
-  { while(1)
+   while(arming)
     {
     sensor_msgs::Joy controlVelYawRate;
     controlVelYawRate.axes.push_back(x);
@@ -154,7 +153,7 @@ bool Mission::hopex(float x, float y, float z, float yaw)
     }
     bool landing_result = landing_initiate();
 
-  }
+
 
   if(!arming)
   {
