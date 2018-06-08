@@ -151,22 +151,23 @@ bool Mission::hopex(float x, float y, float z, float yaw)
     }
 
     //ROS_INFO("time %f", elapsed_time.toSec())
-    ros::spinOnce();
+  //  ros::spinOnce();
     }
-    bool landing_result = landing_initiate();
-
 
 
   if(!arming)
   {
     return false;
   }
-  else if(landing_result)
+  else
   {
+   landing_initiate();
+   ros::Duration(0.5).sleep();
+   ros::spinOnce();
    ROS_INFO("SphereX Landed Safely");
-   //ros::spinOnce();
+   return true;//ros::spinOnce();
   }
-  return true;
+
 }
 //-------------------xxxxxx---------------------xxxxxx-----------------------xxxxxxx------------------------xxxxxxxx-----------------------xxxxxx----------------------------xxxxxxx
 void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
