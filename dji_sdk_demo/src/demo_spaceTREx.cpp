@@ -1,23 +1,22 @@
-/** @file demo_flight_control.cpp
- *  @version 3.3
- *  @date May, 2017
- *
- *  @brief
- *  demo sample of how to use flight control APIs
- *
- *  @copyright 2017 DJI. All rights reserved.
- *
- */
 
 #include "dji_sdk_demo/demo_flight_control.h"
 #include "dji_sdk/dji_sdk.h"
+#include <dji_sdk/DroneArmControl.h>
+#include <iostream>
+#include <cstdio>
+#include <STL>
 
+//#include "dji_sdk_demo/spherex.h"
+#include "math.h"
+
+const float gravity = -2.0;
 const float deg2rad = C_PI/180.0;
 const float rad2deg = 180.0/C_PI;
 
 ros::ServiceClient set_local_pos_reference;
 ros::ServiceClient sdk_ctrl_authority_service;
 ros::ServiceClient drone_task_service;
+ros::ServiceClient drone_arm_service;
 ros::ServiceClient query_version_service;
 
 ros::Publisher ctrlPosYawPub;
@@ -30,8 +29,9 @@ sensor_msgs::NavSatFix current_gps;
 geometry_msgs::Quaternion current_atti;
 geometry_msgs::Point current_local_pos;
 
-Mission square_mission;
-
+Mission hop_pos;
+Mission hop_pos;
+Mission hopper_vel;
 
 int main(int argc, char** argv)
 {
@@ -51,16 +51,18 @@ int main(int argc, char** argv)
   // We could use dji_sdk/flight_control_setpoint_ENUvelocity_yawrate here, but
   // we use dji_sdk/flight_control_setpoint_generic to demonstrate how to set the flag
   // properly in function Mission::step()
-  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 10);
+  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 100);
 
   // Basic services
   sdk_ctrl_authority_service = nh.serviceClient<dji_sdk::SDKControlAuthority> ("dji_sdk/sdk_control_authority");
   drone_task_service         = nh.serviceClient<dji_sdk::DroneTaskControl>("dji_sdk/drone_task_control");
+  drone_arm_service          = nh.serviceClient<dji_sdk::DroneArmControl>("dji_sdk/drone_arm_control");
   query_version_service      = nh.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
   set_local_pos_reference    = nh.serviceClient<dji_sdk::SetLocalPosRef> ("dji_sdk/set_local_pos_ref");
 
   bool obtain_control_result = obtain_control();
-  //bool takeoff_result;
+  bool hopping_result = true;
+
   if (!set_local_position()) // We need this for height
   {
     ROS_ERROR("GPS health insufficient - No local frame reference for height. Exiting.");
@@ -77,22 +79,26 @@ int main(int argc, char** argv)
     takeoff_result = monitoredTakeoff();
   }
 */
+    float x=2 ,y=3,z=2,yaw=2;
+    //hop_pos.reset();
+        //hop_pos.setTarget(0, 20, 3, 60);
+    //hop_pos.state = 1;
 
-    //square_mission.reset();
-    //square_mission.start_gps_location = current_gps;
-    //square_mission.start_local_position = current_local_pos;
-    //square_mission.setTarget(0, 20, 3, 60);
-    //square_mission.state = 1;
+
   while(ros::ok())
   {
-    sensor_msgs::Joy controlVelYawRate;
-    controlVelYawRate.axes.push_back(3);
-    controlVelYawRate.axes.push_back(3);
-    controlVelYawRate.axes.push_back(3);
-    controlVelYawRate.axes.push_back(3);
-    ctrlVelYawratePub.publish(controlVelYawRate);
-    ROS_INFO("##### Start %d....", 1 );
+
+    if(hopping_result)
+    {
+      std::cout<<"Please Enter next Velocity vector";
+      std::cin>>x>>y>>z>>yaw;
+      hopping_result = false;
+
+    }
+
+    hopping_result = hopper.hopex(x , y, z, yaw);
     ros::spinOnce();
+
   }
 
   return 0;
@@ -103,30 +109,82 @@ int main(int argc, char** argv)
 /*! Very simple calculation of local NED offset between two pairs of GPS
 /coordinates. Accurate when distances are small.
 !*/
-void
-localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
-                         sensor_msgs::NavSatFix& target,
-                         sensor_msgs::NavSatFix& origin)
+//----------------------------------xxxxxx---------"Hopping Executer"---------------xxxxxxx------------------------xxxxxxx-----------------------xxxxxxx--------------xxxxxx
+bool Mission::hopex(float x, float y, float z, float yaw)
 {
-  double deltaLon = target.longitude - origin.longitude;
-  double deltaLat = target.latitude - origin.latitude;
 
-  deltaNed.y = deltaLat * deg2rad * C_EARTH;
-  deltaNed.x = deltaLon * deg2rad * C_EARTH * cos(deg2rad*target.latitude);
-  deltaNed.z = target.altitude - origin.altitude;
+  float Vz_start = z;
+  float Vz_current = z;
+  ros::Time start_time = ros::Time::now();
+   while(((-1)*(Vz_current) <= 0.90*Vz_start))
+    {
+    sensor_msgs::Joy controlVelYawRate;
+    controlVelYawRate.axes.push_back(x);
+    controlVelYawRate.axes.push_back(y);
+    controlVelYawRate.axes.push_back(Vz_current);
+    controlVelYawRate.axes.push_back(yaw);
+    ctrlVelYawratePub.publish(controlVelYawRate);
+    ros::Duration elapsed_time = ros::Time::now() - start_time;
+
+    Vz_current = Vz_start + gravity*(elapsed_time.toSec());
+    ROS_INFO("x y and z %f %f %f",x,y,Vz_current);
+    }
+
+
+   landing_initiate();
+   arm_motors();
+   return true;
+
+
 }
-
-
-geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
+int Misson::hopex_to_pos(float x, float y, float z, float yaw)
 {
-  geometry_msgs::Vector3 ans;
+  std::vector<std::vector<float>> pos_matrix;
+  hop_pos.start_gps_location = current_gps;
+  hop_pos.start_local_position = current_local_pos;
+  int steps =  create_position_matrix(&pos_matrix, x, y, z, yaw);
+  for(int i=0, i<steps, i++)
+  {
+    hop_pos.reset();
+    hop_pos.setTarget(pos_matrix[i][0], pos_matrix[i][1], pos_matrix[i][2], pos_matrix[i][3]);
+    
+    while(hop_pos.finished);
+  }
 
-  tf::Matrix3x3 R_FLU2ENU(tf::Quaternion(quat.x, quat.y, quat.z, quat.w));
-  R_FLU2ENU.getRPY(ans.x, ans.y, ans.z);
-  return ans;
 }
+int Mission::create_position_matrix(std::vector<std::vector<float>>& pos_matrix, float x, float y, float z, float yaw)  // not defined
+{
+  hop_pos.start_local_position = current_local_pos;
+  float del_x = x -  start_local_position.x;
+  float del_y = y -  start_local_position.y;
+  float del_z = z -  start_local_position.z;
+  int   hop_steps_count= 0;
+  float step_min = (abs(del_x)>=abs(del_y)) ? abs(del_y) : abs(del_x);
+  hop_steps_count = 4*step_min;
+  float x_sstep = del_x/hop_steps_count;
+  float y_sstep = del_y/hop_step_count;
+  float z_sstep = del_z/hop_step_count;
+  pos_matrix.resize(hop_steps_count);
+  for(int i=0; i<hop_steps_count; i++)
+  {
+    //pos_matrix[i].resize(4);
+    pos_matrix[i].push_back(x_sstep);
+    pos_matrix[i].push_back(y_sstep);
+    pos_matrix[i].push_back(z_sstep);
+    pos_matrix[i].push_back(0);
+    x_sstep = x_sstep + del_x/hop_steps_count;
+    y_sstep = y_sstep + del_y/hop_steps_count;
+    z_sstep = (hop_steps_count/2 < i) ? (z_sstep + del_z/hop_step_count) : (z_sstep - del_z/hop_step_count);
 
-void Mission::step()
+  }
+
+  return hop_steps_count;
+
+
+
+
+}
+bool Mission::Hop_Step()
 {
   static int info_counter = 0;
   geometry_msgs::Vector3     localOffset;
@@ -191,7 +249,7 @@ void Mission::step()
     controlVelYawRate.axes.push_back(0);
     controlVelYawRate.axes.push_back(flag);
 
-    ctrlVelYawratePub.publish(controlVelYawRate);
+    ctrlBrakePub.publish(controlVelYawRate);
     break_counter++;
     return;
   }
@@ -237,9 +295,77 @@ void Mission::step()
     ROS_INFO("##### Route %d start break....", state);
     break_counter = 1;
   }
+}
+//-------------------xxxxxx---------------------xxxxxx-----------------------xxxxxxx------------------------xxxxxxxx-----------------------xxxxxx----------------------------xxxxxxx
+void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
+                         sensor_msgs::NavSatFix& target,
+                         sensor_msgs::NavSatFix& origin)
+{
+  double deltaLon = target.longitude - origin.longitude;
+  double deltaLat = target.latitude - origin.latitude;
 
+  deltaNed.y = deltaLat * deg2rad * C_EARTH;
+  deltaNed.x = deltaLon * deg2rad * C_EARTH * cos(deg2rad*target.latitude);
+  deltaNed.z = target.altitude - origin.altitude;
 }
 
+
+geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
+{
+  geometry_msgs::Vector3 ans;
+
+  tf::Matrix3x3 R_FLU2ENU(tf::Quaternion(quat.x, quat.y, quat.z, quat.w));
+  R_FLU2ENU.getRPY(ans.x, ans.y, ans.z);
+  return ans;
+}
+
+
+bool landing_initiate(void)
+{
+  dji_sdk::DroneTaskControl droneTaskControl;
+
+  droneTaskControl.request.task = 6;
+
+  drone_task_service.call(droneTaskControl);
+
+  if(!droneTaskControl.response.result)
+  {
+    ROS_ERROR("landing failed");
+    return false;
+  }
+
+  return true;
+}
+//--------xxxx--------xxxxx-----ARMING of Motors and Landing---xxxx---------xxxx------------xxxx----------------------------
+bool arm_motors()
+{
+  dji_sdk::DroneArmControl droneArmControl;
+  droneArmControl.request.arm = 1;
+  drone_arm_service.call(droneArmControl);
+  if(!droneArmControl.response.result)
+  {
+    ROS_ERROR("Arming Failed");
+      return false;
+  }
+  return true;
+}
+
+bool disarm_motors()
+{
+  dji_sdk::DroneArmControl droneArmControl;
+  droneArmControl.request.arm = 0;
+  drone_arm_service.call(droneArmControl);
+  if(!droneArmControl.response.result)
+  {
+    ROS_ERROR("Disarming Failed");
+      return false;
+  }
+  return true;
+}
+
+
+
+//-----xxxxxxxxx-------------------xxxxxxxxxxxxxxx-----------xxxxxxxxxx-------------xxx---------------------------
 bool takeoff_land(int task)
 {
   dji_sdk::DroneTaskControl droneTaskControl;
@@ -256,6 +382,7 @@ bool takeoff_land(int task)
 
   return true;
 }
+
 
 bool obtain_control()
 {
@@ -295,7 +422,7 @@ void local_position_callback(const geometry_msgs::PointStamped::ConstPtr& msg)
   current_local_pos = msg->point;
 }
 
-void gps_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void gps_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)   //from gps_callback
 {
   static ros::Time start_time = ros::Time::now();
   ros::Duration elapsed_time = ros::Time::now() - start_time;
@@ -305,66 +432,66 @@ void gps_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   if(elapsed_time > ros::Duration(0.02))
   {
     start_time = ros::Time::now();
-    switch(square_mission.state)
+    switch(hop_pos.state)
     {
       case 0:
         break;
 
       case 1:
-        if(!square_mission.finished)
+        if(!hop_pos.finished)
         {
-          square_mission.step();
+          hop_pos.Hop_step();
         }
         else
         {
-          square_mission.reset();
-          square_mission.start_gps_location = current_gps;
-          square_mission.start_local_position = current_local_pos;
-          square_mission.setTarget(20, 0, 0, 0);
-          square_mission.state = 2;
-          ROS_INFO("##### Start route %d ....", square_mission.state);
+          hop_pos.reset();
+          hop_pos.start_gps_location = current_gps;
+          hop_pos.start_local_position = current_local_pos;
+          hop_pos.setTarget(20, 0, 0, 0);
+          hop_pos.state = 2;
+          ROS_INFO("##### Start route %d ....", hop_pos.state);
         }
         break;
 
       case 2:
-        if(!square_mission.finished)
+        if(!hop_pos.finished)
         {
-          square_mission.step();
+          hop_pos.Hop_step();
         }
         else
         {
-          square_mission.reset();
-          square_mission.start_gps_location = current_gps;
-          square_mission.start_local_position = current_local_pos;
-          square_mission.setTarget(0, -20, 0, 0);
-          square_mission.state = 3;
-          ROS_INFO("##### Start route %d ....", square_mission.state);
+          hop_pos.reset();
+          hop_pos.start_gps_location = current_gps;
+          hop_pos.start_local_position = current_local_pos;
+          hop_pos.setTarget(0, -20, 0, 0);
+          hop_pos.state = 3;
+          ROS_INFO("##### Start route %d ....", hop_pos.state);
         }
         break;
       case 3:
-        if(!square_mission.finished)
+        if(!hop_pos.finished)
         {
-          square_mission.step();
+          hop_pos.Hop_step();
         }
         else
         {
-          square_mission.reset();
-          square_mission.start_gps_location = current_gps;
-          square_mission.start_local_position = current_local_pos;
-          square_mission.setTarget(-20, 0, 0, 0);
-          square_mission.state = 4;
-          ROS_INFO("##### Start route %d ....", square_mission.state);
+          hop_pos.reset();
+          hop_pos.start_gps_location = current_gps;
+          hop_pos.start_local_position = current_local_pos;
+          hop_pos.setTarget(-20, 0, 0, 0);
+          hop_pos.state = 4;
+          ROS_INFO("##### Start route %d ....", hop_pos.state);
         }
         break;
       case 4:
-        if(!square_mission.finished)
+        if(!hop_pos.finished)
         {
-          square_mission.step();
+          hop_pos.Hop_step();
         }
         else
         {
-          ROS_INFO("##### Mission %d Finished ....", square_mission.state);
-          square_mission.state = 0;
+          ROS_INFO("##### Mission %d Finished ....", hop_pos.state);
+          hop_pos.state = 0;
         }
         break;
     }
