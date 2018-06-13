@@ -29,7 +29,7 @@ sensor_msgs::NavSatFix current_gps;
 geometry_msgs::Quaternion current_atti;
 geometry_msgs::Point current_local_pos;
 
-Mission hop_pos;
+
 Mission hop_pos;
 Mission hopper_vel;
 
@@ -95,8 +95,8 @@ int main(int argc, char** argv)
       hopping_result = false;
 
     }
-
-    hopping_result = hopper.hopex(x , y, z, yaw);
+    
+    hopping_result = hop_pos.hopex_to_pos(x , y, z, yaw);
     ros::spinOnce();
 
   }
@@ -147,11 +147,16 @@ int Misson::hopex_to_pos(float x, float y, float z, float yaw)
   {
     hop_pos.reset();
     hop_pos.setTarget(pos_matrix[i][0], pos_matrix[i][1], pos_matrix[i][2], pos_matrix[i][3]);
-    
-    while(hop_pos.finished);
-  }
 
+    while(!hop_pos.finished)
+    {
+      ros::spinOnce();
+    }
+    hop_pos.finished = false;
+  }
+return true;
 }
+
 int Mission::create_position_matrix(std::vector<std::vector<float>>& pos_matrix, float x, float y, float z, float yaw)  // not defined
 {
   hop_pos.start_local_position = current_local_pos;
@@ -177,12 +182,7 @@ int Mission::create_position_matrix(std::vector<std::vector<float>>& pos_matrix,
     z_sstep = (hop_steps_count/2 < i) ? (z_sstep + del_z/hop_step_count) : (z_sstep - del_z/hop_step_count);
 
   }
-
   return hop_steps_count;
-
-
-
-
 }
 bool Mission::Hop_Step()
 {

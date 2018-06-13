@@ -64,7 +64,7 @@ public:
   {
   }
 
-  void step();
+  //void step();
 
   void setTarget(float x, float y, float z, float yaw)
   {
@@ -82,6 +82,10 @@ public:
     finished = false;
   }
 
+ bool hopex(float, float, float, float);
+ int Misson::hopex_to_pos(float x, float y, float z, float yaw);
+ int create_position_matrix(std::vector<std::vector<float>>& pos_matrix, float x, float y, float z, float yaw);
+ void Hop_step();
 };
 
 void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
@@ -111,5 +115,10 @@ bool monitoredTakeoff();
 bool M100monitoredTakeoff();
 
 bool set_local_position();
+
+bool landing_initiate(void);
+
+bool arm_motors(void);
+bool disarm_motors(void);
 
 #endif // DEMO_FLIGHT_CONTROL_H
