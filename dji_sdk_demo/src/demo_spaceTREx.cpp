@@ -4,7 +4,7 @@
 #include <dji_sdk/DroneArmControl.h>
 #include <iostream>
 #include <cstdio>
-#include <STL>
+
 
 //#include "dji_sdk_demo/spherex.h"
 #include "math.h"
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
       hopping_result = false;
 
     }
-    
+
     hopping_result = hop_pos.hopex_to_pos(x , y, z, yaw);
     ros::spinOnce();
 
@@ -167,8 +167,8 @@ int Mission::create_position_matrix(std::vector<std::vector<float>>& pos_matrix,
   float step_min = (abs(del_x)>=abs(del_y)) ? abs(del_y) : abs(del_x);
   hop_steps_count = 4*step_min;
   float x_sstep = del_x/hop_steps_count;
-  float y_sstep = del_y/hop_step_count;
-  float z_sstep = del_z/hop_step_count;
+  float y_sstep = del_y/hop_steps_count;
+  float z_sstep = del_z/hop_steps_count;
   pos_matrix.resize(hop_steps_count);
   for(int i=0; i<hop_steps_count; i++)
   {
@@ -179,12 +179,13 @@ int Mission::create_position_matrix(std::vector<std::vector<float>>& pos_matrix,
     pos_matrix[i].push_back(0);
     x_sstep = x_sstep + del_x/hop_steps_count;
     y_sstep = y_sstep + del_y/hop_steps_count;
-    z_sstep = (hop_steps_count/2 < i) ? (z_sstep + del_z/hop_step_count) : (z_sstep - del_z/hop_step_count);
+    z_sstep = (hop_steps_count/2 < i) ? (z_sstep + del_z/hop_steps_count) : (z_sstep - del_z/hop_steps_count);
 
   }
   return hop_steps_count;
+
 }
-bool Mission::Hop_Step()
+void Mission::Hop_step()
 {
   static int info_counter = 0;
   geometry_msgs::Vector3     localOffset;
