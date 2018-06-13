@@ -22,6 +22,7 @@ ros::ServiceClient query_version_service;
 ros::Publisher ctrlPosYawPub;
 ros::Publisher ctrlVelYawratePub;
 
+
 // global variables for subscribed topics
 uint8_t flight_status = 255;
 uint8_t display_mode  = 255;
@@ -137,13 +138,13 @@ bool Mission::hopex(float x, float y, float z, float yaw)
 
 
 }
-int Misson::hopex_to_pos(float x, float y, float z, float yaw)
+int Mission::hopex_to_pos(float x, float y, float z, float yaw)
 {
   std::vector<std::vector<float>> pos_matrix;
   hop_pos.start_gps_location = current_gps;
   hop_pos.start_local_position = current_local_pos;
-  int steps =  create_position_matrix(&pos_matrix, x, y, z, yaw);
-  for(int i=0, i<steps, i++)
+  int steps =  create_position_matrix(pos_matrix, x, y, z, yaw);
+  for(int i=0 ;  i<steps ; i++)
   {
     hop_pos.reset();
     hop_pos.setTarget(pos_matrix[i][0], pos_matrix[i][1], pos_matrix[i][2], pos_matrix[i][3]);
@@ -250,7 +251,7 @@ void Mission::Hop_step()
     controlVelYawRate.axes.push_back(0);
     controlVelYawRate.axes.push_back(flag);
 
-    ctrlBrakePub.publish(controlVelYawRate);
+    ctrlVelYawratePub.publish(controlVelYawRate);
     break_counter++;
     return;
   }
