@@ -73,7 +73,7 @@ public:
     target_offset_z = z;
     target_yaw      = yaw;
   }
-
+ void step();
   void reset()
   {
     inbound_counter = 0;
