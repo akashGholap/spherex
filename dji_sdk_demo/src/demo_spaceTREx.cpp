@@ -140,19 +140,22 @@ bool Mission::hopex(float x, float y, float z, float yaw)
 }
 int Mission::hopex_to_pos(float x, float y, float z, float yaw)
 {
-  ROS_DEBUG("hopex_to_pos called");
+  ROS_INFO("hopex_to_pos called");
   std::vector<std::vector<float>> pos_matrix;
   hop_pos.start_gps_location = current_gps;
   hop_pos.start_local_position = current_local_pos;
   int steps =  create_position_matrix(pos_matrix, x, y, z, yaw);
+  ROS_INFO("vectors %f, %f, %f,%f ",pos_matrix[i][0], pos_matrix[i][1], pos_matrix[i][2], pos_matrix[i][3] );
+  ROS_INFO("step %d", steps);
   for(int i=0 ;  i<steps ; i++)
   {
+
     hop_pos.reset();
     hop_pos.setTarget(pos_matrix[i][0], pos_matrix[i][1], pos_matrix[i][2], pos_matrix[i][3]);
 
     while(!hop_pos.finished)
     {
-      ROS_DEBUG("in finish loop");
+      ROS_INFO("in finish loop");
       ros::spinOnce();
     }
     hop_pos.finished = false;
@@ -162,7 +165,7 @@ return true;
 
 int Mission::create_position_matrix(std::vector<std::vector<float>> &pos_matrix, float x, float y, float z, float yaw)  // not defined
 {
-  ROS_DEBUG("hopex_to_pos called");
+  ROS_INFO("hopex_to_pos called");
   hop_pos.start_local_position = current_local_pos;
   float del_x = x -  start_local_position.x;
   float del_y = y -  start_local_position.y;
@@ -190,10 +193,11 @@ int Mission::create_position_matrix(std::vector<std::vector<float>> &pos_matrix,
   }
   return hop_steps_count;
 
+
 }
 void Mission::Hop_step()
 {
-  ROS_DEBUG("entered step");
+  ROS_INFO("entered step");
   static int info_counter = 0;
   geometry_msgs::Vector3     localOffset;
 
@@ -435,7 +439,7 @@ void gps_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)   //from gps_call
   static ros::Time start_time = ros::Time::now();
   ros::Duration elapsed_time = ros::Time::now() - start_time;
   current_gps = *msg;
-
+  ROS_INFO("GPS callback called");
   // Down sampled to 50Hz loop
   if(elapsed_time > ros::Duration(0.02))
   {
