@@ -64,7 +64,7 @@ public:
   {
   }
 
-  void step();
+  //void step();
 
   void setTarget(float x, float y, float z, float yaw)
   {
@@ -73,7 +73,7 @@ public:
     target_offset_z = z;
     target_yaw      = yaw;
   }
-
+ void step();
   void reset()
   {
     inbound_counter = 0;
@@ -83,6 +83,12 @@ public:
   }
 
  bool hopex(float, float, float, float);
+<<<<<<< HEAD
+ int hopex_to_pos(float x, float y, float z, float yaw);
+ int create_position_matrix(std::vector<std::vector<float>> &pos_matrix, float x, float y, float z, float yaw);
+ void Hop_step();
+=======
+>>>>>>> master
 };
 
 void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
