@@ -43,7 +43,7 @@ ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpo
 bool obtain_control_result = obtain_control();
 //bool hopping_result = true;
 
-while(obtain_control());
+while(!obtain_control());
 arm_motors();
 
 
