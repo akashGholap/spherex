@@ -222,14 +222,14 @@ target_link_libraries(demo_flight_control
         )
 add_dependencies(demo_flight_control dji_sdk_generate_messages_cpp)
 
-##add_executable(demo_spaceTREx
-##        src/demo_spaceTREx.cpp)
+add_executable(demo_spaceTREx
+        src/demo_spaceTREx.cpp)
 
-##target_link_libraries(demo_spaceTREx
-##        ${catkin_LIBRARIES}
-##        ${DJIOSDK_LIBRARIES}
-##        )
-##add_dependencies(demo_spaceTREx dji_sdk_generate_messages_cpp)
+target_link_libraries(demo_spaceTREx
+        ${catkin_LIBRARIES}
+       ${DJIOSDK_LIBRARIES}
+        )
+add_dependencies(demo_spaceTREx dji_sdk_generate_messages_cpp)
 
 add_executable(flight_test
         src/flight_test.cpp)
