@@ -145,7 +145,12 @@ int Mission::hopex_to_pos(float x, float y, float z, float yaw)
   hop_pos.start_gps_location = current_gps;
   hop_pos.start_local_position = current_local_pos;
   int steps =  create_position_matrix(pos_matrix, x, y, z, yaw);
-  ROS_INFO("vectors %f, %f, %f,%f ",pos_matrix[i][0], pos_matrix[i][1], pos_matrix[i][2], pos_matrix[i][3] );
+  for(int i=0; i<steps; i++)
+  {
+
+    ROS_INFO("vectors %f, %f, %f,%f ",pos_matrix[i][0], pos_matrix[i][1], pos_matrix[i][2], pos_matrix[i][3] );
+
+  }
   ROS_INFO("step %d", steps);
   for(int i=0 ;  i<steps ; i++)
   {
