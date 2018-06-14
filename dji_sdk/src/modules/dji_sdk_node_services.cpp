@@ -70,8 +70,15 @@ DJISDKNode::droneArmCallback(dji_sdk::DroneArmControl::Request&  request,
 
   if (ACK::getError(ack))
   {
+    if (response.ack_data == 2) //added to get already armed does not affect the system start
+     {
+       response.result = true;
+     }    /* code */
+    else
+     {
     response.result = false;
     ACK::getErrorCodeMessage(ack, __func__);
+     }
   }
   else
   {
@@ -110,8 +117,10 @@ DJISDKNode::sdkCtrlAuthorityCallback(
 
   if (ACK::getError(ack))
   {
+
     response.result = false;
     ACK::getErrorCodeMessage(ack, __func__);
+
   }
   else
   {
@@ -147,8 +156,8 @@ DJISDKNode::setLocalPosRefCallback(dji_sdk::SetLocalPosRef::Request &request,
   {
     ROS_INFO("Not enough GPS Satellites. ");
     ROS_INFO("Cannot set Local Position reference");
-    local_pos_ref_set = false;
-    response.result = false;
+    local_pos_ref_set = false;    //it was false**
+    response.result = false;     // it was false**
   }
   return true;
 }
