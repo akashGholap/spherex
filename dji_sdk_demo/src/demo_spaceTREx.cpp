@@ -140,6 +140,7 @@ bool Mission::hopex(float x, float y, float z, float yaw)
 }
 int Mission::hopex_to_pos(float x, float y, float z, float yaw)
 {
+  ROS_DEBUG("hopex_to_pos called");
   std::vector<std::vector<float>> pos_matrix;
   hop_pos.start_gps_location = current_gps;
   hop_pos.start_local_position = current_local_pos;
@@ -151,6 +152,7 @@ int Mission::hopex_to_pos(float x, float y, float z, float yaw)
 
     while(!hop_pos.finished)
     {
+      ROS_DEBUG("in finish loop");
       ros::spinOnce();
     }
     hop_pos.finished = false;
@@ -160,6 +162,7 @@ return true;
 
 int Mission::create_position_matrix(std::vector<std::vector<float>> &pos_matrix, float x, float y, float z, float yaw)  // not defined
 {
+  ROS_DEBUG("hopex_to_pos called");
   hop_pos.start_local_position = current_local_pos;
   float del_x = x -  start_local_position.x;
   float del_y = y -  start_local_position.y;
@@ -170,6 +173,7 @@ int Mission::create_position_matrix(std::vector<std::vector<float>> &pos_matrix,
   float x_sstep = del_x/hop_steps_count;
   float y_sstep = del_y/hop_steps_count;
   float z_sstep = del_z/hop_steps_count;
+  ROS_INFO("%d steps count", hop_steps_count);
   pos_matrix.resize(hop_steps_count);
   for(int i=0; i<hop_steps_count; i++)
   {
@@ -181,6 +185,7 @@ int Mission::create_position_matrix(std::vector<std::vector<float>> &pos_matrix,
     x_sstep = x_sstep + del_x/hop_steps_count;
     y_sstep = y_sstep + del_y/hop_steps_count;
     z_sstep = (hop_steps_count/2 < i) ? (z_sstep + del_z/hop_steps_count) : (z_sstep - del_z/hop_steps_count);
+    ROS_INFO("vectors %f, %f, %f,%f ",pos_matrix[i][0], pos_matrix[i][1], pos_matrix[i][2], pos_matrix[i][3] );
 
   }
   return hop_steps_count;
@@ -188,6 +193,7 @@ int Mission::create_position_matrix(std::vector<std::vector<float>> &pos_matrix,
 }
 void Mission::Hop_step()
 {
+  ROS_DEBUG("entered step");
   static int info_counter = 0;
   geometry_msgs::Vector3     localOffset;
 
