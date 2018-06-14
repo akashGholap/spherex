@@ -42,6 +42,8 @@ ctrlPosYawPub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_
 ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 100);
 bool obtain_control_result = obtain_control();
 //bool hopping_result = true;
+
+while(obtain_control());
 arm_motors();
 
 
