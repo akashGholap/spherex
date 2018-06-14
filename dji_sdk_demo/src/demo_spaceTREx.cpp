@@ -160,7 +160,7 @@ int Mission::hopex_to_pos(float x, float y, float z, float yaw)
     hop_pos.state = 1;
     while(!hop_pos.finished)
     {
-      ROS_INFO("in finish loop");
+    //  ROS_INFO("in finish loop");
       ros::spinOnce();
     }
     hop_pos.finished = false;
@@ -282,9 +282,9 @@ void Mission::Hop_step()
     ctrlPosYawPub.publish(controlPosYaw);
   }
 
-  if (std::abs(xOffsetRemaining) < 0.5 &&
-      std::abs(yOffsetRemaining) < 0.5 &&
-      std::abs(zOffsetRemaining) < 0.5 &&
+  if (std::abs(xOffsetRemaining) < 0.01 &&
+      std::abs(yOffsetRemaining) < 0.01 &&
+      std::abs(zOffsetRemaining) < 0.01 &&
       std::abs(yawInRad - yawDesiredRad) < yawThresholdInRad)
   {
     //! 1. We are within bounds; start incrementing our in-bound counter
@@ -446,7 +446,7 @@ void gps_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)   //from gps_call
   current_gps = *msg;
   ROS_INFO("GPS callback called");
   // Down sampled to 50Hz loop
-  if(elapsed_time > ros::Duration(0.02))
+  if(true)
   {
     ROS_INFO("GPS in 1st if");
     start_time = ros::Time::now();
