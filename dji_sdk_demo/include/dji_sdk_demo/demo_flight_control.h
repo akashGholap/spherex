@@ -84,7 +84,7 @@ public:
 
  bool hopex(float, float, float, float);
  int hopex_to_pos(float x, float y, float z, float yaw);
- int create_position_matrix(std::vector<std::vector<float>>& pos_matrix, float x, float y, float z, float yaw);
+ int create_position_matrix(std::vector<std::vector<float>> &pos_matrix, float x, float y, float z, float yaw);
  void Hop_step();
 };
 

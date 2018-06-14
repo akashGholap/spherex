@@ -158,7 +158,7 @@ int Mission::hopex_to_pos(float x, float y, float z, float yaw)
 return true;
 }
 
-int Mission::create_position_matrix(std::vector<std::vector<float>>& pos_matrix, float x, float y, float z, float yaw)  // not defined
+int Mission::create_position_matrix(std::vector<std::vector<float>> &pos_matrix, float x, float y, float z, float yaw)  // not defined
 {
   hop_pos.start_local_position = current_local_pos;
   float del_x = x -  start_local_position.x;
