@@ -157,7 +157,7 @@ int Mission::hopex_to_pos(float x, float y, float z, float yaw)
 
     hop_pos.reset();
     hop_pos.setTarget(pos_matrix[i][0], pos_matrix[i][1], pos_matrix[i][2], pos_matrix[i][3]);
-
+    hop_pos.state = 1;
     while(!hop_pos.finished)
     {
       ROS_INFO("in finish loop");
@@ -448,15 +448,18 @@ void gps_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)   //from gps_call
   // Down sampled to 50Hz loop
   if(elapsed_time > ros::Duration(0.02))
   {
+    ROS_INFO("GPS in 1st if");
     start_time = ros::Time::now();
     switch(hop_pos.state)
     {
+      ROS_INFO("GPS callback in switch case");
       case 0:
         break;
 
       case 1:
         if(!hop_pos.finished)
         {
+          ROS_INFO("calling step loop");
           hop_pos.Hop_step();
         }
         else
