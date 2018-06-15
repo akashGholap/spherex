@@ -164,10 +164,10 @@ int Mission::hopex_to_pos(float x, float y, float z, float yaw)
     hop_pos.state = 1;
     while(!hop_pos.finished)
     {
-    //  ROS_INFO("in finish loop");
+     ROS_INFO(" still in finish loop");
       ros::spinOnce();
     }
-    //hop_pos.finished = false;
+    hop_pos.finished = false;
   }
 return true;
 }
@@ -286,9 +286,9 @@ void Mission::Hop_step()
     ctrlPosYawPub.publish(controlPosYaw);
   }
 
-  if (std::abs(xOffsetRemaining) < 0.01 &&
-      std::abs(yOffsetRemaining) < 0.01 &&
-      std::abs(zOffsetRemaining) < 0.01 &&
+  if (std::abs(xOffsetRemaining) < 0.2 &&
+      std::abs(yOffsetRemaining) < 0.2 &&
+      std::abs(zOffsetRemaining) < 0.2 &&
       std::abs(yawInRad - yawDesiredRad) < yawThresholdInRad)
   {
     //! 1. We are within bounds; start incrementing our in-bound counter
