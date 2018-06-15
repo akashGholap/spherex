@@ -181,7 +181,7 @@ int Mission::create_position_matrix(std::vector<std::vector<float>> &pos_matrix,
   float del_z = z -  start_local_position.z;
   int   hop_steps_count= 0;
   float step_min = (abs(del_x)>=abs(del_y)) ? abs(del_y) : abs(del_x);
-  hop_steps_count = 4*step_min;
+  hop_steps_count = 2*step_min;
   float x_sstep = del_x/hop_steps_count;
   float y_sstep = del_y/hop_steps_count;
   float z_sstep = del_z/hop_steps_count;
@@ -196,7 +196,7 @@ int Mission::create_position_matrix(std::vector<std::vector<float>> &pos_matrix,
     pos_matrix[i].push_back(0);
     x_sstep = x_sstep + del_x/hop_steps_count;
     y_sstep = y_sstep + del_y/hop_steps_count;
-    z_sstep = (hop_steps_count/2 < i) ? (z_sstep + del_z/hop_steps_count) : (z_sstep - del_z/hop_steps_count);
+    z_sstep = (hop_steps_count/2 > i) ? (z_sstep + del_z/hop_steps_count) : (z_sstep - del_z/hop_steps_count);
     ROS_INFO("vectors %f, %f, %f,%f ",pos_matrix[i][0], pos_matrix[i][1], pos_matrix[i][2], pos_matrix[i][3] );
 
   }
@@ -210,7 +210,7 @@ void Mission::Hop_step()
   static int info_counter = 0;
   geometry_msgs::Vector3     localOffset;
 
-  float speedFactor         = 4;
+  float speedFactor         = 2;
   float yawThresholdInDeg   = 2;
 
   float xCmd, yCmd, zCmd;
