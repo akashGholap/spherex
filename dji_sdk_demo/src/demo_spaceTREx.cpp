@@ -52,7 +52,7 @@ int main(int argc, char** argv)
   // We could use dji_sdk/flight_control_setpoint_ENUvelocity_yawrate here, but
   // we use dji_sdk/flight_control_setpoint_generic to demonstrate how to set the flag
   // properly in function Mission::step()
-  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 100);
+  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_generic", 10);
 
   // Basic services
   sdk_ctrl_authority_service = nh.serviceClient<dji_sdk::SDKControlAuthority> ("dji_sdk/sdk_control_authority");
@@ -80,6 +80,7 @@ int main(int argc, char** argv)
     takeoff_result = monitoredTakeoff();
   }
 */
+
     float x=2 ,y=3,z=2,yaw=2;
     //hop_pos.reset();
         //hop_pos.setTarget(0, 20, 3, 60);
@@ -145,6 +146,7 @@ int Mission::hopex_to_pos(float x, float y, float z, float yaw)
   hop_pos.start_gps_location = current_gps;
   hop_pos.start_local_position = current_local_pos;
   int steps =  create_position_matrix(pos_matrix, x, y, z, yaw);
+
   for(int i=0; i<steps; i++)
   {
 
@@ -156,6 +158,8 @@ int Mission::hopex_to_pos(float x, float y, float z, float yaw)
   {
 
     hop_pos.reset();
+    hop_pos.start_gps_location = current_gps;
+    hop_pos.start_local_position = current_local_pos;
     hop_pos.setTarget(pos_matrix[i][0], pos_matrix[i][1], pos_matrix[i][2], pos_matrix[i][3]);
     hop_pos.state = 1;
     while(!hop_pos.finished)
@@ -163,7 +167,7 @@ int Mission::hopex_to_pos(float x, float y, float z, float yaw)
     //  ROS_INFO("in finish loop");
       ros::spinOnce();
     }
-    hop_pos.finished = false;
+    //hop_pos.finished = false;
   }
 return true;
 }
@@ -171,7 +175,7 @@ return true;
 int Mission::create_position_matrix(std::vector<std::vector<float>> &pos_matrix, float x, float y, float z, float yaw)  // not defined
 {
   ROS_INFO("hopex_to_pos called");
-  hop_pos.start_local_position = current_local_pos;
+//  hop_pos.start_local_position = current_local_pos;
   float del_x = x -  start_local_position.x;
   float del_y = y -  start_local_position.y;
   float del_z = z -  start_local_position.z;
@@ -206,7 +210,7 @@ void Mission::Hop_step()
   static int info_counter = 0;
   geometry_msgs::Vector3     localOffset;
 
-  float speedFactor         = 2;
+  float speedFactor         = 4;
   float yawThresholdInDeg   = 2;
 
   float xCmd, yCmd, zCmd;
@@ -320,7 +324,8 @@ void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
 {
   double deltaLon = target.longitude - origin.longitude;
   double deltaLat = target.latitude - origin.latitude;
-
+  ROS_INFO("-----x=%f, y=%f, z=%f, target..", target.latitude,target.longitude, target.altitude);
+  ROS_INFO("-----x=%f, y=%f, z=%f, origin..", origin.latitude,origin.longitude, origin.altitude);
   deltaNed.y = deltaLat * deg2rad * C_EARTH;
   deltaNed.x = deltaLon * deg2rad * C_EARTH * cos(deg2rad*target.latitude);
   deltaNed.z = target.altitude - origin.altitude;
