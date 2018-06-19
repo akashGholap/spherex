@@ -164,7 +164,7 @@ int Mission::hopex_to_pos(float x, float y, float z, float yaw)
     hop_pos.state = 1;
     while(!hop_pos.finished)
     {
-     ROS_INFO(" still in finish loop");
+     //ROS_INFO(" still in finish loop");
       ros::spinOnce();
     }
     hop_pos.finished = false;
