@@ -250,11 +250,10 @@ void Mission::Hop_step()
    *         and call it done, else we send normal command
    */
 
-  if (break_counter > 5)
+  if (break_counter > 50)
   {
     ROS_INFO("##### Route %d finished....", state);
     finished = true;
-
     return;
   }
   else if(break_counter > 0)
@@ -292,12 +291,12 @@ void Mission::Hop_step()
       std::abs(yOffsetRemaining) < 0.25 &&
       std::abs(zOffsetRemaining) < 0.25 &&
       std::abs(yawInRad - yawDesiredRad) < yawThresholdInRad)
-      inbound_counter ++;
-    ROS_INFO("%d break counter", inbound_counter);
   {
     //! 1. We are within bounds; start incrementing our in-bound counter
 
-
+    inbound_counter ++;
+  ROS_INFO("%d break counter", inbound_counter);
+ }
   else
   {
     if (inbound_counter != 0)
