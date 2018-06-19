@@ -292,11 +292,12 @@ void Mission::Hop_step()
       std::abs(yOffsetRemaining) < 0.25 &&
       std::abs(zOffsetRemaining) < 0.25 &&
       std::abs(yawInRad - yawDesiredRad) < yawThresholdInRad)
+      inbound_counter ++;
+    ROS_INFO("%d break counter", inbound_counter);
   {
     //! 1. We are within bounds; start incrementing our in-bound counter
 
-    inbound_counter ++;
-  ROS_INFO("%d break counter", inbound_counter);
+
   else
   {
     if (inbound_counter != 0)
