@@ -250,10 +250,11 @@ void Mission::Hop_step()
    *         and call it done, else we send normal command
    */
 
-  if (break_counter > 50)
+  if (break_counter > 5)
   {
     ROS_INFO("##### Route %d finished....", state);
     finished = true;
+
     return;
   }
   else if(break_counter > 0)
@@ -272,6 +273,7 @@ void Mission::Hop_step()
 
     ctrlVelYawratePub.publish(controlVelYawRate);
     break_counter++;
+    ROS_INFO("%d break counter", break_counter);
     return;
   }
   else //break_counter = 0, not in break stage
@@ -286,14 +288,15 @@ void Mission::Hop_step()
     ctrlPosYawPub.publish(controlPosYaw);
   }
 
-  if (std::abs(xOffsetRemaining) < 0.2 &&
-      std::abs(yOffsetRemaining) < 0.2 &&
-      std::abs(zOffsetRemaining) < 0.2 &&
+  if (std::abs(xOffsetRemaining) < 0.25 &&
+      std::abs(yOffsetRemaining) < 0.25 &&
+      std::abs(zOffsetRemaining) < 0.25 &&
       std::abs(yawInRad - yawDesiredRad) < yawThresholdInRad)
   {
     //! 1. We are within bounds; start incrementing our in-bound counter
+
     inbound_counter ++;
-  }
+  ROS_INFO("%d break counter", inbound_counter);
   else
   {
     if (inbound_counter != 0)
@@ -311,10 +314,11 @@ void Mission::Hop_step()
     outbound_counter = 0;
   }
 
-  if (inbound_counter > 50)
+  if (inbound_counter > 20)
   {
     ROS_INFO("##### Route %d start break....", state);
     break_counter = 1;
+
   }
 }
 //-------------------xxxxxx---------------------xxxxxx-----------------------xxxxxxx------------------------xxxxxxxx-----------------------xxxxxx----------------------------xxxxxxx
