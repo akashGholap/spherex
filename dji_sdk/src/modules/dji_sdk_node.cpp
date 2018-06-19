@@ -239,7 +239,7 @@ DJISDKNode::initPublisher(ros::NodeHandle& nh)
   rc_publisher = nh.advertise<sensor_msgs::Joy>("dji_sdk/rc", 10);
 
   attitude_publisher =
-    nh.advertise<geometry_msgs::QuaternionStamped>("dji_sdk/attitude", 10);
+    nh.advertise<geometry_msgs::QuaternionStamped>("dji_sdk/attitude", 100);
 
   battery_state_publisher =
     nh.advertise<sensor_msgs::BatteryState>("dji_sdk/battery_state",10);
@@ -254,7 +254,7 @@ DJISDKNode::initPublisher(ros::NodeHandle& nh)
 
   // Refer to dji_sdk.h for different enums for M100 and A3/N3
   flight_status_publisher =
-    nh.advertise<std_msgs::UInt8>("dji_sdk/flight_status", 10);
+    nh.advertise<std_msgs::UInt8>("dji_sdk/flight_status", 100);
 
   /*!
    * gps_health needs to be greater than 3 for gps_position and velocity topics
@@ -387,7 +387,7 @@ DJISDKNode::initPublisher(ros::NodeHandle& nh)
 
     // Details can be found in DisplayMode enum in dji_sdk.h
     displaymode_publisher =
-      nh.advertise<std_msgs::UInt8>("dji_sdk/display_mode", 10);
+      nh.advertise<std_msgs::UInt8>("dji_sdk/display_mode", 100);
 
     angularRate_publisher =
       nh.advertise<geometry_msgs::Vector3Stamped>("dji_sdk/angular_velocity_fused", 10);
