@@ -250,29 +250,10 @@ void Mission::Hop_step()
    *         and call it done, else we send normal command
    */
 
-  if (break_counter > 50)
+  if (break_counter ==1)
   {
     ROS_INFO("##### Route %d finished....", state);
     finished = true;
-    return;
-  }
-  else if(break_counter > 0)
-  {
-    sensor_msgs::Joy controlVelYawRate;
-    uint8_t flag = (DJISDK::VERTICAL_VELOCITY   |
-                DJISDK::HORIZONTAL_VELOCITY |
-                DJISDK::YAW_RATE            |
-                DJISDK::HORIZONTAL_GROUND   |
-                DJISDK::STABLE_ENABLE);
-    controlVelYawRate.axes.push_back(0);
-    controlVelYawRate.axes.push_back(0);
-    controlVelYawRate.axes.push_back(0);
-    controlVelYawRate.axes.push_back(0);
-    controlVelYawRate.axes.push_back(flag);
-
-    ctrlVelYawratePub.publish(controlVelYawRate);
-    break_counter++;
-    ROS_INFO("%d break counter", break_counter);
     return;
   }
   else //break_counter = 0, not in break stage
@@ -314,7 +295,7 @@ void Mission::Hop_step()
     outbound_counter = 0;
   }
 
-  if (inbound_counter > 20)
+  if (inbound_counter > 10)
   {
     ROS_INFO("##### Route %d start break....", state);
     break_counter = 1;
@@ -476,8 +457,8 @@ void gps_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)   //from gps_call
           hop_pos.reset();
           hop_pos.start_gps_location = current_gps;
           hop_pos.start_local_position = current_local_pos;
-          hop_pos.setTarget(20, 0, 0, 0);
-          hop_pos.state = 2;
+          //hop_pos.setTarget(20, 0, 0, 0);
+          hop_pos.state = 1;
           ROS_INFO("##### Start route %d ....", hop_pos.state);
         }
         break;
