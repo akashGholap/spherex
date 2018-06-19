@@ -41,13 +41,13 @@ int main(int argc, char** argv)
 
   // Subscribe to messages from dji_sdk_node
   ros::Subscriber attitudeSub = nh.subscribe("dji_sdk/attitude", 10, &attitude_callback);
-  ros::Subscriber gpsSub      = nh.subscribe("dji_sdk/gps_position", 10, &gps_callback);
+  ros::Subscriber gpsSub      = nh.subscribe("dji_sdk/gps_position", 100, &gps_callback);
   ros::Subscriber flightStatusSub = nh.subscribe("dji_sdk/flight_status", 10, &flight_status_callback);
   ros::Subscriber displayModeSub = nh.subscribe("dji_sdk/display_mode", 10, &display_mode_callback);
-  ros::Subscriber localPosition = nh.subscribe("dji_sdk/local_position", 10, &local_position_callback);
+  ros::Subscriber localPosition = nh.subscribe("dji_sdk/local_position", 100, &local_position_callback);
 
   // Publish the control signal
-  ctrlPosYawPub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUposition_yaw", 10);
+  ctrlPosYawPub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUposition_yaw", 100);
 
   // We could use dji_sdk/flight_control_setpoint_ENUvelocity_yawrate here, but
   // we use dji_sdk/flight_control_setpoint_generic to demonstrate how to set the flag
@@ -270,8 +270,8 @@ void Mission::Hop_step()
 
   if (std::abs(xOffsetRemaining) < 0.25 &&
       std::abs(yOffsetRemaining) < 0.25 &&
-      std::abs(zOffsetRemaining) < 0.25 &&
-      std::abs(yawInRad - yawDesiredRad) < yawThresholdInRad)
+      std::abs(zOffsetRemaining) < 0.25
+    /*std::abs(yawInRad - yawDesiredRad) < yawThresholdInRad*/)
   {
     //! 1. We are within bounds; start incrementing our in-bound counter
 

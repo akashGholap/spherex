@@ -187,7 +187,7 @@ DJISDKNode::initFlightControl(ros::NodeHandle& nh)
 
   flight_control_position_yaw_sub =
     nh.subscribe<sensor_msgs::Joy>(
-      "dji_sdk/flight_control_setpoint_ENUposition_yaw", 10,
+      "dji_sdk/flight_control_setpoint_ENUposition_yaw", 100,
       &DJISDKNode::flightControlPxPyPzYawCallback, this);
 
   flight_control_velocity_yawrate_sub =
@@ -271,7 +271,7 @@ DJISDKNode::initPublisher(ros::NodeHandle& nh)
    *   Altitude [m]. Positive is above the WGS 84 ellipsoid
    */
   gps_position_publisher =
-    nh.advertise<sensor_msgs::NavSatFix>("dji_sdk/gps_position", 10);
+    nh.advertise<sensor_msgs::NavSatFix>("dji_sdk/gps_position", 100);
 
   /*!
    * Height above home altitude. It is valid only after drone
@@ -291,7 +291,7 @@ DJISDKNode::initPublisher(ros::NodeHandle& nh)
     nh.advertise<geometry_msgs::Vector3Stamped>("dji_sdk/gimbal_angle", 10);
 
   local_position_publisher =
-      nh.advertise<geometry_msgs::PointStamped>("dji_sdk/local_position", 10);
+      nh.advertise<geometry_msgs::PointStamped>("dji_sdk/local_position", 100);
 
   local_frame_ref_publisher =
       nh.advertise<sensor_msgs::NavSatFix>("dji_sdk/local_frame_ref", 10, true);
