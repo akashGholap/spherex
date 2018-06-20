@@ -230,6 +230,14 @@ target_link_libraries(demo_spaceTREx
        ${DJIOSDK_LIBRARIES}
         )
 add_dependencies(demo_spaceTREx dji_sdk_generate_messages_cpp)
+add_executable(demo_spacTREx_velocity_pos
+        src/demo_spacTREx_velocity_pos.cpp)
+
+target_link_libraries(demo_spacTREx_velocity_pos
+        ${catkin_LIBRARIES}
+       ${DJIOSDK_LIBRARIES}
+        )
+add_dependencies(demo_spacTREx_velocity_pos dji_sdk_generate_messages_cpp)
 
 add_executable(flight_test
         src/flight_test.cpp)

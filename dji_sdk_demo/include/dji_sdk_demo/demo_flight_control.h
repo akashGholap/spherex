@@ -48,11 +48,14 @@ public:
   int inbound_counter;
   int outbound_counter;
   int break_counter;
-
+  int vel_counter;
   float target_offset_x;
   float target_offset_y;
   float target_offset_z;
   float target_yaw;
+  float x_vel, y_vel, z_vel,z_vel_current;
+  bool start_flag;
+
   sensor_msgs::NavSatFix start_gps_location;
   geometry_msgs::Point start_local_position;
 
@@ -60,7 +63,7 @@ public:
 
   Mission() : state(0), inbound_counter(0), outbound_counter(0), break_counter(0),
               target_offset_x(0.0), target_offset_y(0.0), target_offset_z(0.0),
-              finished(false)
+              finished(false),start_flag(false),x_vel(0.0),y_vel(0.0),z_vel(0.0),vel_counter(0),z_vel_current(0.0)
   {
   }
 
@@ -80,12 +83,15 @@ public:
     outbound_counter = 0;
     break_counter = 0;
     finished = false;
+    start_flag = true;
   }
 
  bool hopex(float, float, float, float);
  int hopex_to_pos(float x, float y, float z, float yaw);
+  int hop_vel_pos(float x, float y, float z, float yaw);
  int create_position_matrix(std::vector<std::vector<float>> &pos_matrix, float x, float y, float z, float yaw);
  void Hop_step();
+ void Hop_step_vel_pos();
 
 };
 
