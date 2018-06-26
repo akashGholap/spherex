@@ -190,14 +190,14 @@ DJISDKNode::dataBroadcastCallback()
     flight_status_publisher.publish(flight_status);
   }
 
-  uint16_t flag_has_gimbal = 
+  uint16_t flag_has_gimbal =
           isM100() ? (data_enable_flag & DataBroadcast::DATA_ENABLE_FLAG::HAS_GIMBAL) :
           (data_enable_flag & DataBroadcast::DATA_ENABLE_FLAG::A3_HAS_GIMBAL);
   if (flag_has_gimbal)
   {
     Telemetry::Gimbal gimbal_reading;
 
-    
+
     Telemetry::Gimbal gimbal_angle = vehicle->broadcast->getGimbal();
 
     geometry_msgs::Vector3Stamped gimbal_angle_vec3;

@@ -29,6 +29,7 @@ uint8_t display_mode  = 255;
 sensor_msgs::NavSatFix current_gps;
 geometry_msgs::Quaternion current_atti;
 geometry_msgs::Point current_local_pos;
+geometry_msgs::Vector3 velocity_from_sdk
 
 
 Mission hop_pos;
@@ -45,6 +46,7 @@ int main(int argc, char** argv)
   ros::Subscriber flightStatusSub = nh.subscribe("dji_sdk/flight_status", 100, &flight_status_callback);
   ros::Subscriber displayModeSub = nh.subscribe("dji_sdk/display_mode", 100, &display_mode_callback);
   ros::Subscriber localPosition = nh.subscribe("dji_sdk/local_position", 100, &local_position_callback);
+  ros::Subscriber getVelocity = nh.subscribe("dji_sdk/rtk_velocity" ,100, &getVelocity_callback);
 
   // Publish the control signal
   ctrlPosYawPub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUposition_yaw", 100);
@@ -391,6 +393,8 @@ if(start_flag)
   z_vel = 2*sqrt(x_vel*x_vel + y_vel*y_vel);
 //  yaw =0;
   start_flag = false;
+  ROS_INFO("-----x=%f, y=%f, z=%f, yaw=%f ...", x_vel, y_vel, z_vel);
+
 }
 if(abs(xOffsetRemaining)>=0.5||abs(yOffsetRemaining)>=0.5&&abs(zOffsetRemaining)>=0.5)
 {
@@ -530,8 +534,15 @@ bool disarm_motors()
   }
   return true;
 }
+void getVelocity_callback(geometry_msgs::Vector3& velocity)
+{
+  velocity_from_sdk.x = velocity->x;
+  velocity_from_sdk.y = velocity->y;
+  velocity_from_sdk.z = velocity->z;
 
 
+
+}
 
 //-----xxxxxxxxx-------------------xxxxxxxxxxxxxxx-----------xxxxxxxxxx-------------xxx---------------------------
 bool takeoff_land(int task)
