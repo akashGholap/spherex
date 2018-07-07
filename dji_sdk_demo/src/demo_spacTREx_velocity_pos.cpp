@@ -540,7 +540,10 @@ void getVelocity_callback(geometry_msgs::Vector3& velocity)
   velocity_from_sdk.y = velocity->y;
   velocity_from_sdk.z = velocity->z;
 
+  predict();
+  estimate();
 
+    
 
 }
 
