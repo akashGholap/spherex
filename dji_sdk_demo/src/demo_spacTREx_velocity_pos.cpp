@@ -1,4 +1,4 @@
-
+wqa
 #include "dji_sdk_demo/demo_flight_control.h"
 #include "dji_sdk/dji_sdk.h"
 #include <dji_sdk/DroneArmControl.h>
@@ -541,6 +541,17 @@ void getVelocity_callback(geometry_msgs::Vector3& velocity)
   velocity_from_sdk.z = velocity->z;
 
 
+
+
+
+
+}
+double set_optimum_velocity()
+{
+
+}
+void kalman_filter()
+{
 
 }
 
