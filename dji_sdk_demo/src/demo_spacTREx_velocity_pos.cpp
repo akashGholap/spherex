@@ -4,7 +4,7 @@ wqa
 #include <dji_sdk/DroneArmControl.h>
 #include <iostream>
 #include <cstdio>
-
+#include <dlib/optimization.h>
 
 //#include "dji_sdk_demo/spherex.h"
 #include "math.h"
@@ -534,6 +534,10 @@ bool disarm_motors()
   }
   return true;
 }
+double optimization_function(double x)
+{
+  return ((Ry/x)*(Ry/x) + (Rx/x)*(Rx/x) + x*x*g*g) ;
+}
 void getVelocity_callback(geometry_msgs::Vector3& velocity)
 {
   velocity_from_sdk.x = velocity->x;
@@ -543,7 +547,7 @@ void getVelocity_callback(geometry_msgs::Vector3& velocity)
   predict();
   estimate();
 
-    
+
 
 
 
@@ -551,6 +555,14 @@ void getVelocity_callback(geometry_msgs::Vector3& velocity)
 }
 double set_optimum_velocity()
 {
+    double t;
+    const double begin = 0.0;
+    const double end = 5;
+    double starting_point = 0.0;
+    const double eps = 1e-3;
+    const long max_iter = 100;
+    const double initial_search_radius = 0.01;
+   t = find_min_single_variable(optimization_function, starting_point, begin, end, eps, max_iter, initial_search_radius);
 
 }
 void kalman_filter()
