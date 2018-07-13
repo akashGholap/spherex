@@ -50,6 +50,10 @@ public:
   int outbound_counter;
   int break_counter;
   int vel_counter;
+
+  double xi,yi,zi; //initial position
+  double xf,yf,zf; //final position
+
   float target_offset_x;
   float target_offset_y;
   float target_offset_z;
@@ -108,11 +112,15 @@ void flight_status_callback(const std_msgs::UInt8::ConstPtr& msg);
 
 void gps_callback(const sensor_msgs::NavSatFix::ConstPtr& msg);
 
+
+
 void attitude_callback(const geometry_msgs::QuaternionStamped::ConstPtr& msg);
 
 void local_position_callback(const geometry_msgs::PointStamped::ConstPtr& msg);
 
 bool takeoff_land(int task);
+
+void getVelocity_callback(geometry_msgs::Vector3& velocity);
 
 bool obtain_control();
 
@@ -123,6 +131,10 @@ bool monitoredTakeoff();
 bool M100monitoredTakeoff();
 
 bool set_local_position();
+
+double optimization_function(double x);
+
+void set_optimum_velocity(std::vector<double>& Vel_opt);
 
 bool landing_initiate(void);
 

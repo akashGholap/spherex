@@ -99,7 +99,11 @@ int main(int argc, char** argv)
       std::cin>>x>>y>>z>>yaw>>state_action;
       hopping_result = false;
 
+
+
+
     }
+    /*-------------------------------------------------------------------------------------------------------
     if(state_action == 1)
     {
     hopping_result = hop_pos.hopex_to_pos(x , y, z, yaw);
@@ -111,7 +115,8 @@ int main(int argc, char** argv)
   else
   {
     hopping_result = hop_pos.hop_vel_pos(x , y, z, yaw);
-  }
+  }---------------------------------------------------------------------------------------------------------*/
+
     ros::spinOnce();
 
   }
@@ -534,26 +539,44 @@ bool disarm_motors()
   }
   return true;
 }
-double optimization_function(double x)
+double optimization_function(double x) // not yet prototyped
 {
-  return ((Ry/x)*(Ry/x) + (Rx/x)*(Rx/x) + x*x*g*g) ;
+  //this function is intentended to call from the
+  double Rx = hopex_to_pos.xi - hopex_to_pos.xf;
+  double Ry = hopex_to_pos.yi - hopex_to_pos.yf;
+  double Rz = hopex_to_pos.zi - hopex_to_pos.zf;
+  return ((Ry/x)*(Ry/x) + (Rx/x)*(Rx/x) + (Rz/x)*(Rz/x) + x*x*g*g) ;
 }
-void getVelocity_callback(geometry_msgs::Vector3& velocity)
+void set_filter()    // prototyped in the kalman_filter_spacetrex header
+{ int m = 3, n = 3;
+  double dt = 0.01;
+  Eigen::MatrixXd A(m,n); A << 1,0,0,0,1,0,0,0,1; //system matrix
+  Eigen::MatrixXd B(n,1); B << 0, 0, -0.166;   //Control Input Matrix
+  Eigen::MatrixXd C(m,n); C << 1,0,0,0,1,0,0,0,1; //Output Matrix
+  //Eigen::MatrixXd C(m,1); D << 0,0,0;
+  Eigen::MatrixXd Q(m,n); Q << 1e-1, 1e-1, 1e-1,1e-1, 1e-1, 1e-1,1e-1, 1e-1, 1e-1;
+  Eigen::MatrixXd R(m,n); R << 0.01, 0, 0, 0, 0.01, 0, 0 ,0, 0.01;
+  Eigen::MatrixXd P(m,n); P << 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1;
+
+  KalmanFilter kfs(dt,A,B,C,Q,R,P);
+
+}
+
+void getVelocity_callback(geometry_msgs::Vector3& velocity) // prototyped in the flight control header
 {
-  velocity_from_sdk.x = velocity->x;
-  velocity_from_sdk.y = velocity->y;
-  velocity_from_sdk.z = velocity->z;
 
-  predict();
-  estimate();
-
-
-
+  if(kfs.setup_done)
+  {
+    Eigen::Vector3d vel_rtk(velocity->x, velocity->y ,velocity->z + kfs.t*1.66 );
+    kfs.predict();
+    kfs.estimate(vel_rtk);
+    kfs.t= kfs.t + kfs.dt ;
 
 
+  }
 
 }
-double set_optimum_velocity()
+double set_optimum_velocity()   //not yet prototyped
 {
     double t;
     const double begin = 0.0;
@@ -562,13 +585,10 @@ double set_optimum_velocity()
     const double eps = 1e-3;
     const long max_iter = 100;
     const double initial_search_radius = 0.01;
-   t = find_min_single_variable(optimization_function, starting_point, begin, end, eps, max_iter, initial_search_radius);
+    t = find_min_single_variable(optimization_function, starting_point, begin, end, eps, max_iter, initial_search_radius);
 
 }
-void kalman_filter()
-{
 
-}
 
 //-----xxxxxxxxx-------------------xxxxxxxxxxxxxxx-----------xxxxxxxxxx-------------xxx---------------------------
 bool takeoff_land(int task)

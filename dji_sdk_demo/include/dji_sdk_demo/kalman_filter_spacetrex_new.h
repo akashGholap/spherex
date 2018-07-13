@@ -11,6 +11,8 @@ public:
 
   int m,n;
 
+  double u;
+
   bool setup_done;
 
   double T0 , t;
@@ -21,7 +23,7 @@ public:
 
   Eigen::MatrixXd I;
 
-  Eigen::VectorXd x_hat, x_hat_new, x_;
+  Eigen::VectorXd xhat, xhat_new, x_;
 
   std::vector<double> x_cm;
 
@@ -35,24 +37,35 @@ kalman_filter(  double dt,
     const Eigen::MatrixXd& P,
     const Eigen::MatrixXd& P0,
   )
-    :  dt_(dt),A_(A),B_(B),C_(C),Q_(Q),R_(R),P_(P),K_(K),P0_(P0),m(C.rows()), n(A.rows()), setup_done(false),
-    I(n, n), x_hat(n), x_hat_new(n),x_(n){ I.setIdentity();}
+    :  dt_(dt),A_(A),B_(B),C_(C),Q_(Q),R_(R),P_(P),K_(K),P0_(P0),m(C.rows()), n(A.rows()), setup_done(true),
+    I(n, n), xhat(n), xhat_new(n),x_(n), T0(0), t(0),u(1)
+    {
+       I.setIdentity();
+       xhat.setZero();
+       xhat_new.setZero();
+       x_.setZero();
+    }
 
 
-void predict()
+void predict() //following the trend class function implementations is done in headers 
 {
-  x_hat_new = A * x_hat;
+  xhat_new = A * x_hat + B*u;
   P = A*P*A.transpose() + Q;
 }
 
-void estimate()
+void estimate(Eigen::Vector3d& V)
 {
-  x_hat_new = A * x_hat;
+  xhat_new = A * xhat;
+
   P = A*P*A.transpose() + Q;
+
   K = P*C.transpose()*(C*P*C.transpose() + R).inverse();
-  x_hat_new += K * (y - C*x_hat_new);
+
+  xhat_new += K * (V - C*xhat_new);
+
   P = (I - K*C)*P;
-  x_hat = x_hat_new;
+
+  xhat = xhat_new;
 
   t += dt;
 
@@ -61,3 +74,5 @@ void estimate()
 
 };
 }
+
+void set_filter();
