@@ -545,7 +545,7 @@ double optimization_function(double x) // not yet prototyped
   double Rx = hopex_to_pos.xi - hopex_to_pos.xf;
   double Ry = hopex_to_pos.yi - hopex_to_pos.yf;
   double Rz = hopex_to_pos.zi - hopex_to_pos.zf;
-  return ((Ry/x)*(Ry/x) + (Rx/x)*(Rx/x) + (Rz/x)*(Rz/x) + x*x*g*g) ;
+  return ((Ry/x)*(Ry/x) + (Rx/x)*(Rx/x) + Rz*(x + x*g)*(x + x*g);
 }
 void set_filter()    // prototyped in the kalman_filter_spacetrex header
 { int m = 3, n = 3;
@@ -576,7 +576,7 @@ void getVelocity_callback(geometry_msgs::Vector3& velocity) // prototyped in the
   }
 
 }
-double set_optimum_velocity()   //not yet prototyped
+double set_optimum_velocity(std::vector<double>& opt_vel)   //not yet prototyped
 {
     double t;
     const double begin = 0.0;
@@ -586,6 +586,12 @@ double set_optimum_velocity()   //not yet prototyped
     const long max_iter = 100;
     const double initial_search_radius = 0.01;
     t = find_min_single_variable(optimization_function, starting_point, begin, end, eps, max_iter, initial_search_radius);
+    opt_vel.push_back(kfs.Rx/t);
+    opt_vel.push_back(kfs.Ry/t);
+    opt_vel.push_back(kfs.Rz/t);
+    
+
+
 
 }
 
