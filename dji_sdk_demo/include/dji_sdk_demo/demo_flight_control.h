@@ -68,7 +68,7 @@ public:
 
   Mission() : state(0), inbound_counter(0), outbound_counter(0), break_counter(0),
               target_offset_x(0.0), target_offset_y(0.0), target_offset_z(0.0),
-              finished(false),start_flag(false),x_vel(0.0),y_vel(0.0),z_vel(0.0),vel_counter(0),z_vel_current(0.0)
+              finished(false),start_flag(false),x_vel(0.0),y_vel(0.0),z_vel(0.0),vel_counter(0),z_vel_current(0.0),xi(0.0),yi(0.0),zi(0.0),xf(0.0),yf(0.0),zf(0.0)
   {
   }
 

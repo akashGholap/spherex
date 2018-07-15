@@ -96,8 +96,12 @@ int main(int argc, char** argv)
     if(hopping_result)
     {
       std::cout<<"Please Enter next Velocity vector";
-      std::cin>>x>>y>>z>>yaw>>state_action;
+      std::cin>>hop_pos.xf>>hop_pos.xi>>hop_pos.yf>>hop_pos.yi>>hop_pos.zf>>hop_pos.zi>>yaw;
+      std::vector<double> opt_vel;
+      double t = set_optimum_velocity(opt_vel);
+      set_filter();
       hopping_result = false;
+
 
 
 
@@ -542,23 +546,40 @@ bool disarm_motors()
 double optimization_function(double x) // not yet prototyped
 {
   //this function is intentended to call from the
-  double Rx = hopex_to_pos.xi - hopex_to_pos.xf;
-  double Ry = hopex_to_pos.yi - hopex_to_pos.yf;
-  double Rz = hopex_to_pos.zi - hopex_to_pos.zf;
+  double Rx = hop_pos.xi - hop_pos.xf;
+  double Ry = hop_pos.yi - hop_pos.yf;
+  double Rz = hop_pos.zi - hop_pos.zf;
   return ((Ry/x)*(Ry/x) + (Rx/x)*(Rx/x) + Rz*(x + x*g)*(x + x*g);
 }
 void set_filter()    // prototyped in the kalman_filter_spacetrex header
 { int m = 3, n = 3;
   double dt = 0.01;
-  Eigen::MatrixXd A(m,n); A << 1,0,0,0,1,0,0,0,1; //system matrix
-  Eigen::MatrixXd B(n,1); B << 0, 0, -0.166;   //Control Input Matrix
-  Eigen::MatrixXd C(m,n); C << 1,0,0,0,1,0,0,0,1; //Output Matrix
-  //Eigen::MatrixXd C(m,1); D << 0,0,0;
-  Eigen::MatrixXd Q(m,n); Q << 1e-1, 1e-1, 1e-1,1e-1, 1e-1, 1e-1,1e-1, 1e-1, 1e-1;
-  Eigen::MatrixXd R(m,n); R << 0.01, 0, 0, 0, 0.01, 0, 0 ,0, 0.01;
-  Eigen::MatrixXd P(m,n); P << 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1;
+  Eigen::MatrixXd A(m,n); A << 1,0,0,
+                               0,1,0,
+                               0,0,1; //system matrix
 
-  KalmanFilter kfs(dt,A,B,C,Q,R,P);
+  Eigen::MatrixXd B(n,1); B << 0, 0, -0.166;   //Control Input Matrix
+
+  Eigen::MatrixXd C(m,n); C << 1,0,0,
+                               0,1,0,
+                               0,0,1; //Output Matrix
+
+  Eigen::MatrixXd K(m,n); K <<0.3229,    0.3229,    0.3229,
+                              0.3229,    0.3229,    0.3229,
+                              0.3229,    0.3229,    0.3229;
+
+  Eigen::MatrixXd Q(m,n); Q << 1e-1, 1e-1, 1e-1,
+                               1e-1, 1e-1, 1e-1,
+                               1e-1, 1e-1, 1e-1;
+
+  Eigen::MatrixXd R(m,n); R << 0.01, 0, 0,
+                               0, 0.01, 0,
+                               0, 0, 0.01;
+  Eigen::MatrixXd P(m,n); P << 0.1, 0, 0,
+                               0, 0.1, 0,
+                               0, 0, 0.1;
+
+  KalmanFilter kfs(dt,A,B,C,Q,K,R,P);
 
 }
 
@@ -571,12 +592,10 @@ void getVelocity_callback(geometry_msgs::Vector3& velocity) // prototyped in the
     kfs.predict();
     kfs.estimate(vel_rtk);
     kfs.t= kfs.t + kfs.dt ;
-
-
   }
 
 }
-double set_optimum_velocity(std::vector<double>& opt_vel)   //not yet prototyped
+double set_optimum_velocity(std::vector<double> &opt_vel)   //not yet prototyped
 {
     double t;
     const double begin = 0.0;
@@ -589,7 +608,7 @@ double set_optimum_velocity(std::vector<double>& opt_vel)   //not yet prototyped
     opt_vel.push_back(kfs.Rx/t);
     opt_vel.push_back(kfs.Ry/t);
     opt_vel.push_back(kfs.Rz/t);
-    
+
 
 
 

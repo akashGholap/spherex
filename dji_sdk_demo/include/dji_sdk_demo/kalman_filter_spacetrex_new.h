@@ -33,6 +33,7 @@ kalman_filter(  double dt,
     const Eigen::MatrixXd& A,
     const Eigen::MatrixXd& C,
     const Eigen::MatrixXd& Q,
+    const Eigen::MatrixXd& K,
     const Eigen::MatrixXd& R,
     const Eigen::MatrixXd& P,
     const Eigen::MatrixXd& P0,
@@ -47,7 +48,7 @@ kalman_filter(  double dt,
     }
 
 
-void predict() //following the trend class function implementations is done in headers 
+void predict() //following the trend class function implementations is done in headers
 {
   xhat_new = A * x_hat + B*u;
   P = A*P*A.transpose() + Q;
