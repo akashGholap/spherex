@@ -58,6 +58,9 @@ endif()
 
 find_package(AdvancedSensing QUIET)
 
+find_package (Eigen3 3.3 REQUIRED)
+
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -166,6 +169,8 @@ include_directories(
         include
         ${catkin_INCLUDE_DIRS}
 )
+set(EIGEN_INC_DIR /usr/include/eigen3/)
+include_directories(${EIGEN_INC_DIR})
 
 ## Declare a C++ library
 # add_library(dji_sdk_demo
@@ -228,6 +233,9 @@ add_executable(demo_spaceTREx
 target_link_libraries(demo_spaceTREx
         ${catkin_LIBRARIES}
        ${DJIOSDK_LIBRARIES}
+       ${catkin_LIBRARIES}
+       ${OpenCV_LIBRARIES}
+       dlib
         )
 add_dependencies(demo_spaceTREx dji_sdk_generate_messages_cpp)
 add_executable(demo_spacTREx_velocity_pos
@@ -236,6 +244,9 @@ add_executable(demo_spacTREx_velocity_pos
 target_link_libraries(demo_spacTREx_velocity_pos
         ${catkin_LIBRARIES}
        ${DJIOSDK_LIBRARIES}
+       ${catkin_LIBRARIES}
+       ${OpenCV_LIBRARIES}
+       dlib
         )
 add_dependencies(demo_spacTREx_velocity_pos dji_sdk_generate_messages_cpp)
 

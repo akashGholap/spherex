@@ -18,8 +18,8 @@
 #include <geometry_msgs/Vector3Stamped.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <std_msgs/UInt8.h>
-#include <armadillo.h>
-#include <eigen/dense.h>
+//#include <armadillo.h>
+//#include <eigen/dense.h>
 // DJI SDK includes
 #include <dji_sdk/DroneTaskControl.h>
 #include <dji_sdk/SDKControlAuthority.h>
@@ -134,7 +134,7 @@ bool set_local_position();
 
 double optimization_function(double x);
 
-void set_optimum_velocity(std::vector<double>& Vel_opt);
+double set_optimum_velocity(std::vector<double>& Vel_opt);
 
 bool landing_initiate(void);
 

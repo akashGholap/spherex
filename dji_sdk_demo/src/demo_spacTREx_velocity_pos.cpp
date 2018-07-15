@@ -1,7 +1,9 @@
-wqa
+
 #include "dji_sdk_demo/demo_flight_control.h"
 #include "dji_sdk/dji_sdk.h"
 #include <dji_sdk/DroneArmControl.h>
+//#include <Eigen>
+#include <dji_sdk_demo/spacetrex_kalman_filter.h>
 #include <iostream>
 #include <cstdio>
 #include <dlib/optimization.h>
@@ -29,11 +31,12 @@ uint8_t display_mode  = 255;
 sensor_msgs::NavSatFix current_gps;
 geometry_msgs::Quaternion current_atti;
 geometry_msgs::Point current_local_pos;
-geometry_msgs::Vector3 velocity_from_sdk
+geometry_msgs::Vector3 velocity_from_sdk;
 
 
 Mission hop_pos;
 Mission hopper_vel;
+kalman_filter kfs;
 
 int main(int argc, char** argv)
 {
@@ -99,7 +102,7 @@ int main(int argc, char** argv)
       std::cin>>hop_pos.xf>>hop_pos.xi>>hop_pos.yf>>hop_pos.yi>>hop_pos.zf>>hop_pos.zi>>yaw;
       std::vector<double> opt_vel;
       double t = set_optimum_velocity(opt_vel);
-      set_filter();
+      set_filter(kfs);
       hopping_result = false;
 
 
@@ -402,7 +405,7 @@ if(start_flag)
   z_vel = 2*sqrt(x_vel*x_vel + y_vel*y_vel);
 //  yaw =0;
   start_flag = false;
-  ROS_INFO("-----x=%f, y=%f, z=%f, yaw=%f ...", x_vel, y_vel, z_vel);
+//  ROS_INFO("-----x=%f, y=%f, z=%f, yaw=%f ...", x_vel, y_vel, z_vel);
 
 }
 if(abs(xOffsetRemaining)>=0.5||abs(yOffsetRemaining)>=0.5&&abs(zOffsetRemaining)>=0.5)
@@ -549,12 +552,12 @@ double optimization_function(double x) // not yet prototyped
   double Rx = hop_pos.xi - hop_pos.xf;
   double Ry = hop_pos.yi - hop_pos.yf;
   double Rz = hop_pos.zi - hop_pos.zf;
-  return ((Ry/x)*(Ry/x) + (Rx/x)*(Rx/x) + Rz*(x + x*g)*(x + x*g);
+  return ((Ry/x)*(Ry/x) + (Rx/x)*(Rx/x) + Rz*(x + x*1.66)*(x + x*1.66));
 }
-void set_filter()    // prototyped in the kalman_filter_spacetrex header
+void set_filter(kf::kalman_filter& kfs)    // prototyped in the kalman_filter_spacetrex header
 { int m = 3, n = 3;
   double dt = 0.01;
-  Eigen::MatrixXd A(m,n); A << 1,0,0,
+  Eigen::Matrix3d A(m,n); A << 1,0,0,
                                0,1,0,
                                0,0,1; //system matrix
 
@@ -578,8 +581,11 @@ void set_filter()    // prototyped in the kalman_filter_spacetrex header
   Eigen::MatrixXd P(m,n); P << 0.1, 0, 0,
                                0, 0.1, 0,
                                0, 0, 0.1;
+  Eigen::MatrixXd P0(m,n); P0 << 0.1, 0, 0,
+                               0, 0.1, 0,
+                               0, 0, 0.1;
 
-  KalmanFilter kfs(dt,A,B,C,Q,K,R,P);
+  kf::kalman_filter kfs(dt,A,B,C,Q,K,R,P,P0);
 
 }
 
@@ -588,7 +594,7 @@ void getVelocity_callback(geometry_msgs::Vector3& velocity) // prototyped in the
 
   if(kfs.setup_done)
   {
-    Eigen::Vector3d vel_rtk(velocity->x, velocity->y ,velocity->z + kfs.t*1.66 );
+    Eigen::Vector3d vel_rtk(velocity.x, velocity.y ,velocity.z + kfs.t*1.66 );
     kfs.predict();
     kfs.estimate(vel_rtk);
     kfs.t= kfs.t + kfs.dt ;

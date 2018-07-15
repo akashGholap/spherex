@@ -15,6 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
 )
 find_package(DJIOSDK REQUIRED)
 
+find_package (Eigen3 3.3 REQUIRED)
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -132,6 +134,8 @@ include_directories(
   ${DJIOSDK_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
+set(EIGEN_INC_DIR /usr/include/eigen3/)
+include_directories(${EIGEN_INC_DIR})
 
 ## Declare a cpp library
 # add_library(dji_sdk
@@ -202,5 +206,3 @@ install(DIRECTORY launch
 #   # myfile2
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
-
-
