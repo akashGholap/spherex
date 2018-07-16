@@ -7,7 +7,7 @@
 #include <iostream>
 #include <cstdio>
 #include <dlib/optimization.h>
-
+using namespace kf;
 //#include "dji_sdk_demo/spherex.h"
 #include "math.h"
 
@@ -36,7 +36,7 @@ geometry_msgs::Vector3 velocity_from_sdk;
 
 Mission hop_pos;
 Mission hopper_vel;
-kalman_filter kfs;
+kalman_filter kfs(3,3,0.01);
 
 int main(int argc, char** argv)
 {
@@ -102,7 +102,7 @@ int main(int argc, char** argv)
       std::cin>>hop_pos.xf>>hop_pos.xi>>hop_pos.yf>>hop_pos.yi>>hop_pos.zf>>hop_pos.zi>>yaw;
       std::vector<double> opt_vel;
       double t = set_optimum_velocity(opt_vel);
-      set_filter(kfs);
+      set_filter_main();
       hopping_result = false;
 
 
@@ -554,7 +554,7 @@ double optimization_function(double x) // not yet prototyped
   double Rz = hop_pos.zi - hop_pos.zf;
   return ((Ry/x)*(Ry/x) + (Rx/x)*(Rx/x) + Rz*(x + x*1.66)*(x + x*1.66));
 }
-void set_filter(kf::kalman_filter& kfs)    // prototyped in the kalman_filter_spacetrex header
+void set_filter_main()    // prototyped in the kalman_filter_spacetrex header
 { int m = 3, n = 3;
   double dt = 0.01;
   Eigen::Matrix3d A(m,n); A << 1,0,0,
@@ -585,7 +585,7 @@ void set_filter(kf::kalman_filter& kfs)    // prototyped in the kalman_filter_sp
                                0, 0.1, 0,
                                0, 0, 0.1;
 
-  kf::kalman_filter kfs(dt,A,B,C,Q,K,R,P,P0);
+  kfs.set_filter(dt,A,B,C,Q,K,R,P,P0);
 
 }
 
@@ -597,7 +597,7 @@ void getVelocity_callback(geometry_msgs::Vector3& velocity) // prototyped in the
     Eigen::Vector3d vel_rtk(velocity.x, velocity.y ,velocity.z + kfs.t*1.66 );
     kfs.predict();
     kfs.estimate(vel_rtk);
-    kfs.t= kfs.t + kfs.dt ;
+    kfs.t= kfs.t + kfs.dt_ ;
   }
 
 }
@@ -610,7 +610,7 @@ double set_optimum_velocity(std::vector<double> &opt_vel)   //not yet prototyped
     const double eps = 1e-3;
     const long max_iter = 100;
     const double initial_search_radius = 0.01;
-    t = find_min_single_variable(optimization_function, starting_point, begin, end, eps, max_iter, initial_search_radius);
+    t = dlib::find_min_single_variable(optimization_function, starting_point, begin, end, eps, max_iter, initial_search_radius);
     opt_vel.push_back(kfs.Rx/t);
     opt_vel.push_back(kfs.Ry/t);
     opt_vel.push_back(kfs.Rz/t);

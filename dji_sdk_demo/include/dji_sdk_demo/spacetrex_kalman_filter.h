@@ -9,7 +9,7 @@ namespace kf{
 class kalman_filter{
 public:
 
-  int m,n;
+  int m_,n_;
 
   double u;
 
@@ -18,6 +18,8 @@ public:
   double T0 , t;
 
   double dt_;
+
+  double Rx,Ry,Rz;
 
   Eigen::MatrixXd A_, B_;
 
@@ -36,7 +38,17 @@ public:
 
 
 
-kalman_filter(double dt,
+kalman_filter(int m, int n, double dt)
+    :  dt_(dt),A_(m,n),B_(m,1),C_(m,n),Q_(m,n),R_(m,n),P_(m,n),K_(m,n),P0_(m,n),m_(m), n_(n), setup_done(true),
+    I(n, n), xhat(n), xhat_new(n),x_(n), T0(0), t(0),u(1),Rx(0),Ry(0),Rz(0)
+    {
+       I.setIdentity();
+       xhat.setZero();
+       xhat_new.setZero();
+       x_.setZero();
+    }
+
+void set_filter(double dt,
     const Eigen::MatrixXd& A,
     const Eigen::MatrixXd& B,
     const Eigen::MatrixXd& C,
@@ -45,15 +57,17 @@ kalman_filter(double dt,
     const Eigen::MatrixXd& R,
     const Eigen::MatrixXd& P,
     const Eigen::MatrixXd& P0)
-    :  dt_(dt),A_(A),B_(B),C_(C),Q_(Q),R_(R),P_(P),K_(K),P0_(P0),m(C.rows()), n(A.rows()), setup_done(true),
-    I(n, n), xhat(n), xhat_new(n),x_(n), T0(0), t(0),u(1)
     {
-       I.setIdentity();
-       xhat.setZero();
-       xhat_new.setZero();
-       x_.setZero();
+      dt_ = dt;
+      A_  = A;
+      B_ = B;
+      C_ = C;
+      Q_ =Q;
+      K_ =K;
+      R_ = R;
+      P_ = P;
+      P0_ = P0;
     }
-
 
 void predict() //following the trend class function implementations is done in headers
 {
@@ -83,5 +97,5 @@ void estimate(Eigen::Vector3d& V)
 };
 }
 
-void set_filter(kf::kalman_filter& kfs);
+void set_filter_main();
 #endif
