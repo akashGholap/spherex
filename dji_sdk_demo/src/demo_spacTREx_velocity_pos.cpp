@@ -31,7 +31,7 @@ uint8_t display_mode  = 255;
 sensor_msgs::NavSatFix current_gps;
 geometry_msgs::Quaternion current_atti;
 geometry_msgs::Point current_local_pos;
-geometry_msgs::Vector3 velocity_from_sdk;
+//geometry_msgs::Vector3 velocity_from_sdk;
 
 
 Mission hop_pos;
@@ -589,12 +589,12 @@ void set_filter_main()    // prototyped in the kalman_filter_spacetrex header
 
 }
 
-void getVelocity_callback(geometry_msgs::Vector3& velocity) // prototyped in the flight control header
+void getVelocity_callback(const geometry_msgs::Vector3& vel_from_sdk) // prototyped in the flight control header
 {
 
   if(kfs.setup_done)
   {
-    Eigen::Vector3d vel_rtk(velocity.x, velocity.y ,velocity.z + kfs.t*1.66 );
+    Eigen::Vector3d vel_rtk(vel_from_sdk.x, vel_from_sdk.y ,vel_from_sdk.z + kfs.t*1.66 );
     kfs.predict();
     kfs.estimate(vel_rtk);
     kfs.t= kfs.t + kfs.dt_ ;
