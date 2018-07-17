@@ -58,7 +58,7 @@ endif()
 
 find_package(AdvancedSensing QUIET)
 
-find_package (Eigen3 3.3 REQUIRED)
+find_package (Eigen3 REQUIRED)
 
 
 ## System dependencies are found with CMake's conventions
