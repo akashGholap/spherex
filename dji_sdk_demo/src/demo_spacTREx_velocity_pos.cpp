@@ -5,6 +5,7 @@
 //#include <Eigen>
 #include <dji_sdk_demo/spacetrex_kalman_filter.h>
 #include <iostream>
+#include <future>
 #include <cstdio>
 #include <dlib/optimization.h>
 using namespace kf;
@@ -36,6 +37,7 @@ geometry_msgs::Point current_local_pos;
 
 Mission hop_pos;
 Mission hopper_vel;
+Mission hop;
 kalman_filter kfs(3,3,0.01);
 
 int main(int argc, char** argv)
@@ -44,11 +46,11 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
 
   // Subscribe to messages from dji_sdk_node
-  ros::Subscriber attitudeSub = nh.subscribe("dji_sdk/attitude", 100, &attitude_callback);
-  ros::Subscriber gpsSub      = nh.subscribe("dji_sdk/gps_position", 100, &gps_callback);
+  //ros::Subscriber attitudeSub = nh.subscribe("dji_sdk/attitude", 100, &attitude_callback);
+  //ros::Subscriber gpsSub      = nh.subscribe("dji_sdk/gps_position", 100, &gps_callback);
   ros::Subscriber flightStatusSub = nh.subscribe("dji_sdk/flight_status", 100, &flight_status_callback);
-  ros::Subscriber displayModeSub = nh.subscribe("dji_sdk/display_mode", 100, &display_mode_callback);
-  ros::Subscriber localPosition = nh.subscribe("dji_sdk/local_position", 100, &local_position_callback);
+  //ros::Subscriber displayModeSub = nh.subscribe("dji_sdk/display_mode", 100, &display_mode_callback);
+  //ros::Subscriber localPosition = nh.subscribe("dji_sdk/local_position", 100, &local_position_callback);
   ros::Subscriber getVelocity = nh.subscribe("dji_sdk/rtk_velocity" ,100, &getVelocity_callback);
 
   // Publish the control signal
@@ -69,11 +71,12 @@ int main(int argc, char** argv)
   bool obtain_control_result = obtain_control();
   bool hopping_result = true;
 
-  if (!set_local_position()) // We need this for height
+  /*if (!set_local_position()) // We need this for height
   {
     ROS_ERROR("GPS health insufficient - No local frame reference for height. Exiting.");
     return 0;
   }
+  */
   /*if(is_M100())
   {
     ROS_INFO("M100 taking off!");
@@ -85,6 +88,9 @@ int main(int argc, char** argv)
     takeoff_result = monitoredTakeoff();
   }
 */
+
+    double xi,yi,zi; //initial position
+    double xf,yf,zf; //final position
 
     float x=2 ,y=3,z=2,yaw=2;
     int state_action=1;
@@ -99,16 +105,14 @@ int main(int argc, char** argv)
     if(hopping_result)
     {
       std::cout<<"Please Enter next Velocity vector";
-      std::cin>>hop_pos.xf>>hop_pos.xi>>hop_pos.yf>>hop_pos.yi>>hop_pos.zf>>hop_pos.zi>>yaw;
-      std::vector<double> opt_vel;
-      double t = set_optimum_velocity(opt_vel);
-      set_filter_main();
+      std::cin>>xf>>yf>>zf>>xi>>yi>>zi;
+      hop.set_mission(xf,yf,zf,xi,yi,zi);
+      bool opt_vel_set  =  set_optimum_velocity();
+      if(opt_vel_set)
+      {
+        set_filter_main();
+      }
       hopping_result = false;
-
-
-
-
-
     }
     /*-------------------------------------------------------------------------------------------------------
     if(state_action == 1)
@@ -163,6 +167,16 @@ bool Mission::hopex(float x, float y, float z, float yaw)
    return true;
 
 
+}
+
+void Mission::hop_fill_vel(double Vx, double Vy, double Vz, double yaw)
+{
+  sensor_msgs::Joy controlVelYawRate;
+  controlVelYawRate.axes.push_back(Vx);
+  controlVelYawRate.axes.push_back(Vy);
+  controlVelYawRate.axes.push_back(Vz);
+  controlVelYawRate.axes.push_back(yaw);
+  ctrlVelYawratePub.publish(controlVelYawRate);
 }
 
 int Mission::hop_vel_pos(float x, float y, float z, float yaw)
@@ -252,6 +266,10 @@ int Mission::create_position_matrix(std::vector<std::vector<float>> &pos_matrix,
   return hop_steps_count;
 
 
+}
+bool Mission::hop_step(double xc, double yc, double zc, double tc)
+{
+  hop_fill_vel(x_vel,y_vel,z_vel-1.66*tc,0);
 }
 void Mission::Hop_step()
 {
@@ -351,6 +369,7 @@ void Mission::Hop_step()
 
   }
 }
+
 void Mission::Hop_step_vel_pos()
 {
   ROS_INFO("entered step");
@@ -549,10 +568,7 @@ bool disarm_motors()
 double optimization_function(double x) // not yet prototyped
 {
   //this function is intentended to call from the
-  double Rx = hop_pos.xi - hop_pos.xf;
-  double Ry = hop_pos.yi - hop_pos.yf;
-  double Rz = hop_pos.zi - hop_pos.zf;
-  return ((Ry/x)*(Ry/x) + (Rx/x)*(Rx/x) + Rz*(x + x*1.66)*(x + x*1.66));
+  return (((hop.Ry)/x)*((hop.Ry)/x) + ((hop.Rx)/x)*((hop.Rx)/x) + (hop.Rz)*(x + x*1.66)*(x + x*1.66));
 }
 void set_filter_main()    // prototyped in the kalman_filter_spacetrex header
 { int m = 3, n = 3;
@@ -585,6 +601,7 @@ void set_filter_main()    // prototyped in the kalman_filter_spacetrex header
                                0, 0.1, 0,
                                0, 0, 0.1;
 
+
   kfs.set_filter(dt,A,B,C,Q,K,R,P,P0);
 
 }
@@ -598,23 +615,43 @@ void getVelocity_callback(const geometry_msgs::Vector3& vel_from_sdk) // prototy
     kfs.predict();
     kfs.estimate(vel_rtk);
     kfs.t= kfs.t + kfs.dt_ ;
+    double xc = kfs.xhat[0]*kfs.t;
+    double yc = kfs.xhat[1]*kfs.t;
+    double zc = kfs.xhat[2]*kfs.t;
+    bool to_stop = hop.hop_step(xc,yc,zc,kfs.t);
+    if(to_stop)
+    {
+      kfs.setup_done = false;
+    }
+    //hopper_vel.hop_fill_vel(hop.x_vel, hop.y_vel, hop.z_vel);
+
   }
+  landing_initiate();
+
 
 }
-double set_optimum_velocity(std::vector<double> &opt_vel)   //not yet prototyped
+bool set_optimum_velocity()   //not yet prototyped
 {
-    double t;
-    const double begin = 0.0;
-    const double end = 5;
-    double starting_point = 0.0;
-    const double eps = 1e-3;
-    const long max_iter = 100;
-    const double initial_search_radius = 0.01;
-    t = dlib::find_min_single_variable(optimization_function, starting_point, begin, end, eps, max_iter, initial_search_radius);
-    opt_vel.push_back(kfs.Rx/t);
-    opt_vel.push_back(kfs.Ry/t);
-    opt_vel.push_back(kfs.Rz/t);
-
+    if(!hop.start_flag)
+    {
+      ROS_INFO("Please Set Object hop from mission class first");
+      return false;
+    }
+    else
+    {
+      double t;
+      const double begin = 0.0;
+      const double end = 5;
+      double starting_point = 0.0;
+      const double eps = 1e-3;
+      const long max_iter = 100;
+      const double initial_search_radius = 0.01;
+      t = dlib::find_min_single_variable(optimization_function, starting_point, begin, end, eps, max_iter, initial_search_radius);
+      hop.x_vel = (hop.Rx/t);
+      hop.y_vel = (hop.Ry/t);
+      hop.z_vel = (hop.Rz/t);
+      return true;
+    }
 
 
 

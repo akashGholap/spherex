@@ -53,12 +53,15 @@ public:
 
   double xi,yi,zi; //initial position
   double xf,yf,zf; //final position
+  double Rx,Ry,Rz;
+  double optimum_time;
+  //double Velx,Vely,Velz_c,Velz;
 
   float target_offset_x;
   float target_offset_y;
   float target_offset_z;
   float target_yaw;
-  float x_vel, y_vel, z_vel,z_vel_current;
+  double x_vel, y_vel, z_vel,z_vel_current;
   bool start_flag;
 
   sensor_msgs::NavSatFix start_gps_location;
@@ -68,7 +71,8 @@ public:
 
   Mission() : state(0), inbound_counter(0), outbound_counter(0), break_counter(0),
               target_offset_x(0.0), target_offset_y(0.0), target_offset_z(0.0),
-              finished(false),start_flag(false),x_vel(0.0),y_vel(0.0),z_vel(0.0),vel_counter(0),z_vel_current(0.0),xi(0.0),yi(0.0),zi(0.0),xf(0.0),yf(0.0),zf(0.0)
+              finished(false),start_flag(false),x_vel(0.0),y_vel(0.0),z_vel(0.0),vel_counter(0),z_vel_current(0.0),
+              xi(0.0),yi(0.0),zi(0.0),xf(0.0),yf(0.0),zf(0.0),Rx(0),Ry(0),Rz(0)
   {
   }
 
@@ -92,11 +96,34 @@ public:
   }
 
  bool hopex(float, float, float, float);
+
  int hopex_to_pos(float x, float y, float z, float yaw);
-  int hop_vel_pos(float x, float y, float z, float yaw);
+
+ int hop_vel_pos(float x, float y, float z, float yaw);
+
  int create_position_matrix(std::vector<std::vector<float>> &pos_matrix, float x, float y, float z, float yaw);
+
  void Hop_step();
+
+ bool hop_step(double xc,double yc, double zc, double t);
+
+ void hop_fill_vel(double Vx, double Vy, double Vz, double yaw);
+
  void Hop_step_vel_pos();
+
+ void set_mission(double xf_, double yf_, double zf_, double xi_, double yi_, double zi_ )
+ {
+   xf =xf_;
+   yf = yf_;
+   zf = zf_;
+   xi = xi_;
+   yi = yi_;
+   zi_= zi_;
+   Rx = xf - xi;
+   Ry = yf - yi;
+   Rz = zf - zi;
+   start_flag = true;
+ }
 
 };
 
@@ -134,7 +161,7 @@ bool set_local_position();
 
 double optimization_function(double x);
 
-double set_optimum_velocity(std::vector<double>& Vel_opt);
+bool set_optimum_velocity();
 
 bool landing_initiate(void);
 

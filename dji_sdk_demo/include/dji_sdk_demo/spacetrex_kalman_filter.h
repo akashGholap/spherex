@@ -19,7 +19,7 @@ public:
 
   double dt_;
 
-  double Rx,Ry,Rz;
+  //double Rx,Ry,Rz;
 
   Eigen::MatrixXd A_, B_;
 
@@ -40,7 +40,7 @@ public:
 
 kalman_filter(int m, int n, double dt)
     :  dt_(dt),A_(m,n),B_(m,1),C_(m,n),Q_(m,n),R_(m,n),P_(m,n),K_(m,n),P0_(m,n),m_(m), n_(n), setup_done(true),
-    I(n, n), xhat(n), xhat_new(n),x_(n), T0(0), t(0),u(1),Rx(0),Ry(0),Rz(0)
+    I(n, n), xhat(n), xhat_new(n),x_(n), T0(0), t(0),u(1)
     {
        I.setIdentity();
        xhat.setZero();
@@ -67,6 +67,8 @@ void set_filter(double dt,
       R_ = R;
       P_ = P;
       P0_ = P0;
+      setup_done = true;
+
     }
 
 void predict() //following the trend class function implementations is done in headers
