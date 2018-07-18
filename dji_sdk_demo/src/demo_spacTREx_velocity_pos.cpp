@@ -5,7 +5,7 @@
 //#include <Eigen>
 #include <dji_sdk_demo/spacetrex_kalman_filter.h>
 #include <iostream>
-#include <future>
+//#include <future>
 #include <cstdio>
 #include <dlib/optimization.h>
 using namespace kf;
@@ -568,7 +568,7 @@ bool disarm_motors()
 double optimization_function(double x) // not yet prototyped
 {
   //this function is intentended to call from the
-  return (((hop.Ry)/x)*((hop.Ry)/x) + ((hop.Rx)/x)*((hop.Rx)/x) + (hop.Rz)*(x + x*1.66)*(x + x*1.66));
+  return (((hop.Ry)/x)*((hop.Ry)/x) + ((hop.Rx)/x)*((hop.Rx)/x) + (hop.Rz/x + 1.66*x/2)*(hop.Rz/x + 1.66*x/2);
 }
 void set_filter_main()    // prototyped in the kalman_filter_spacetrex header
 { int m = 3, n = 3;
