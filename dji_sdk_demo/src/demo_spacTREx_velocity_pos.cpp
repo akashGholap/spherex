@@ -640,9 +640,8 @@ bool set_optimum_velocity()   //not yet prototyped
     else
     {
       double t;
-      const double begin = 0.0;
+      const double begin = 0.2;
       const double end = 5;
-      double starting_point = 0.0;
       const double eps = 1e-3;
       const long max_iter = 100;
       const double initial_search_radius = 0.01;
