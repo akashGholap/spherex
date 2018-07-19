@@ -640,11 +640,11 @@ bool set_optimum_velocity()   //not yet prototyped
     else
     {
       double t;
-      const double begin = 0.2;
-      const double end = 5;
-      const double eps = 1e-3;
-      const long max_iter = 100;
-      const double initial_search_radius = 0.01;
+      const double begin = 0.1;
+      const double end = 3;
+      const double eps = 0.1;
+      const long max_iter = 10;
+      const double initial_search_radius = 0.1;
       t = dlib::find_min_single_variable(optimization_function, starting_point, begin, end, eps, max_iter, initial_search_radius);
       hop.x_vel = (hop.Rx/t);
       hop.y_vel = (hop.Ry/t);
