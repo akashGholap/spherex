@@ -641,7 +641,8 @@ bool set_optimum_velocity()   //not yet prototyped
     {
       double t;
       const double begin = 0.1;
-      const double starting_point = 0.1;
+      double begin1 = 0.1;
+      double& starting_point = begin1;
       const double end = 3;
       const double eps = 0.1;
       const long max_iter = 10;
