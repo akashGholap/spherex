@@ -281,7 +281,7 @@ DJISDKNode::initPublisher(ros::NodeHandle& nh)
     nh.advertise<std_msgs::Float32>("dji_sdk/height_above_takeoff", 10);
 
   velocity_publisher =
-    nh.advertise<geometry_msgs::Vector3Stamped>("dji_sdk/velocity", 10);
+    nh.advertise<geometry_msgs::Vector3Stamped>("dji_sdk/velocity", 100);
 
   from_mobile_data_publisher =
     nh.advertise<dji_sdk::MobileData>("dji_sdk/from_mobile_data", 10);

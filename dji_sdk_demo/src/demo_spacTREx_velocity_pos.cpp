@@ -51,7 +51,7 @@ int main(int argc, char** argv)
   ros::Subscriber flightStatusSub = nh.subscribe("dji_sdk/flight_status", 100, &flight_status_callback);
   //ros::Subscriber displayModeSub = nh.subscribe("dji_sdk/display_mode", 100, &display_mode_callback);
   //ros::Subscriber localPosition = nh.subscribe("dji_sdk/local_position", 100, &local_position_callback);
-  ros::Subscriber getVelocity = nh.subscribe("dji_sdk/rtk_velocity" ,100, &getVelocity_callback);
+  ros::Subscriber getVelocity = nh.subscribe("dji_sdk/velocity" ,100, &getVelocity_callback);
 
   // Publish the control signal
   ctrlPosYawPub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUposition_yaw", 100);
@@ -610,7 +610,7 @@ void set_filter_main()    // prototyped in the kalman_filter_spacetrex header
 
 }
 
-void getVelocity_callback(const geometry_msgs::Vector3& vel_from_sdk) // prototyped in the flight control header
+void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // prototyped in the flight control header
 {
   ROS_INFO("In Velocity Callback loop");
 
