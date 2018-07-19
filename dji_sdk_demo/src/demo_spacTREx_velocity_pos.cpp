@@ -605,6 +605,9 @@ void set_filter_main()    // prototyped in the kalman_filter_spacetrex header
 
   kfs.set_filter(dt,A,B,C,Q,K,R,P,P0);
 
+  ROS_INFO("filter is now set");
+  std::cout<<kfs.setup_done;
+
 }
 
 void getVelocity_callback(const geometry_msgs::Vector3& vel_from_sdk) // prototyped in the flight control header

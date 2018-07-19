@@ -68,6 +68,7 @@ void set_filter(double dt,
       P_ = P;
       P0_ = P0;
       setup_done = true;
+      std::cout<<setup_done;
 
     }
 
