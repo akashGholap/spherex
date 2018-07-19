@@ -573,6 +573,7 @@ double optimization_function(double x) // not yet prototyped
 void set_filter_main()    // prototyped in the kalman_filter_spacetrex header
 { int m = 3, n = 3;
   double dt = 0.01;
+  ROS_INFO("to set up KF");
   Eigen::Matrix3d A(m,n); A << 1,0,0,
                                0,1,0,
                                0,0,1; //system matrix
@@ -608,9 +609,11 @@ void set_filter_main()    // prototyped in the kalman_filter_spacetrex header
 
 void getVelocity_callback(const geometry_msgs::Vector3& vel_from_sdk) // prototyped in the flight control header
 {
+  ROS_INFO("In Velocity Callback loop");
 
   if(kfs.setup_done)
   {
+    ROS_INFO("kalman_filter Setup-done is now up");
     Eigen::Vector3d vel_rtk(vel_from_sdk.x, vel_from_sdk.y ,vel_from_sdk.z + kfs.t*1.66 );
     kfs.predict();
     kfs.estimate(vel_rtk);
@@ -639,6 +642,7 @@ bool set_optimum_velocity()   //not yet prototyped
     }
     else
     {
+      ROS_INFO("Optimization starting");
       double t;
       const double begin = 0.1;
       //double begin1 = 0.1;
@@ -651,6 +655,7 @@ bool set_optimum_velocity()   //not yet prototyped
       hop.x_vel = (hop.Rx/t);
       hop.y_vel = (hop.Ry/t);
       hop.z_vel = (hop.Rz/t);
+      ROS_INFO("optimization over %lf", hop.optimum_time);
       return true;
     }
 
