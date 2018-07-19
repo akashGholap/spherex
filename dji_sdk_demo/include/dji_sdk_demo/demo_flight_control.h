@@ -147,7 +147,7 @@ void local_position_callback(const geometry_msgs::PointStamped::ConstPtr& msg);
 
 bool takeoff_land(int task);
 
-void getVelocity_callback(const geometry_msgs::Vector3& vel_from_sdk);
+void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk);
 
 bool obtain_control();
 

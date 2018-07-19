@@ -617,7 +617,7 @@ void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // 
   if(kfs.setup_done)
   {
     ROS_INFO("kalman_filter Setup-done is now up");
-    Eigen::Vector3d vel_rtk(vel_from_sdk.x, vel_from_sdk.y ,vel_from_sdk.z + kfs.t*1.66 );
+    Eigen::Vector3d vel_rtk(vel_from_sdk.vector.x, vel_from_sdk.vector.y ,vel_from_sdk.vector.z + kfs.t*1.66 );
     kfs.predict();
     kfs.estimate(vel_rtk);
     kfs.t= kfs.t + kfs.dt_ ;

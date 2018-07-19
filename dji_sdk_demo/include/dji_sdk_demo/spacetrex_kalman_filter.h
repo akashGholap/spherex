@@ -15,7 +15,7 @@ public:
 
   bool setup_done;
 
-  double T0 , t;
+  double T0 , t; //t_pre_sec, t_pre_nsec,t_sec,t_nsec;
 
   double dt_;
 
