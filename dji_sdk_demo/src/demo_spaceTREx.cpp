@@ -102,7 +102,19 @@ int main(int argc, char** argv)
     ros::spinOnce();
 
   }
-
+  /*-------------------------------------------------------------------------------------------------------
+  if(state_action == 1)
+  {
+  hopping_result = hop_pos.hopex_to_pos(x , y, z, yaw);
+  }
+  else if(state_action == 2)
+  {
+  hopping_result = hop_pos.hopex(x , y, z, yaw);
+  }
+  else
+  {
+  hopping_result = hop_pos.hop_vel_pos(x , y, z, yaw);
+  }---------------------------------------------------------------------------------------------------------*/
   return 0;
 }
 

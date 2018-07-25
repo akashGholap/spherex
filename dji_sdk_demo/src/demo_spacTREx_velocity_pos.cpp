@@ -56,9 +56,6 @@ int main(int argc, char** argv)
   // Publish the control signal
   ctrlPosYawPub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUposition_yaw", 100);
 
-  // We could use dji_sdk/flight_control_setpoint_ENUvelocity_yawrate here, but
-  // we use dji_sdk/flight_control_setpoint_generic to demonstrate how to set the flag
-  // properly in function Mission::step()
   ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 100);
 
   // Basic services
@@ -70,33 +67,15 @@ int main(int argc, char** argv)
 
   bool obtain_control_result = obtain_control();
   bool hopping_result = true;
+  hop.finished = false;
 
-  /*if (!set_local_position()) // We need this for height
-  {
-    ROS_ERROR("GPS health insufficient - No local frame reference for height. Exiting.");
-    return 0;
-  }
-  */
-  /*if(is_M100())
-  {
-    ROS_INFO("M100 taking off!");
-    takeoff_result = M100monitoredTakeoff();
-  }
-  else
-  {
-    ROS_INFO("A3/N3 taking off!");
-    takeoff_result = monitoredTakeoff();
-  }
-*/
 
     double xi,yi,zi; //initial position
     double xf,yf,zf; //final position
 
     float x=2 ,y=3,z=2,yaw=2;
     int state_action=1;
-    //hop_pos.reset();
-        //hop_pos.setTarget(0, 20, 3, 60);
-    //hop_pos.state = 1;
+
 
 
   while(ros::ok())
@@ -114,19 +93,9 @@ int main(int argc, char** argv)
       }
       hopping_result = false;
     }
-    /*-------------------------------------------------------------------------------------------------------
-    if(state_action == 1)
-    {
-    hopping_result = hop_pos.hopex_to_pos(x , y, z, yaw);
-  }
-  else if(state_action == 2)
-  {
-    hopping_result = hop_pos.hopex(x , y, z, yaw);
-  }
-  else
-  {
-    hopping_result = hop_pos.hop_vel_pos(x , y, z, yaw);
-  }---------------------------------------------------------------------------------------------------------*/
+    hopping_result = hop.finished;
+
+    
 
     ros::spinOnce();
 
@@ -137,10 +106,8 @@ int main(int argc, char** argv)
 
 // Helper Functions
 
-/*! Very simple calculation of local NED offset between two pairs of GPS
-/coordinates. Accurate when distances are small.
-!*/
-//----------------------------------xxxxxx---------"Hopping Executer"---------------xxxxxxx------------------------xxxxxxx-----------------------xxxxxxx--------------xxxxxx
+/////////////////////////////////////////////////////////////"hopex"///////////////////////////////////////////////////////////////////////////////////////
+
 bool Mission::hopex(float x, float y, float z, float yaw)
 {
 
@@ -169,6 +136,9 @@ bool Mission::hopex(float x, float y, float z, float yaw)
 
 }
 
+
+/////////////////////////////////////////////////////////////"hop_fill_vel"///////////////////////////////////////////////////////////////////////////////////////
+
 void Mission::hop_fill_vel(double Vx, double Vy, double Vz, double yaw)
 {
   sensor_msgs::Joy controlVelYawRate;
@@ -178,6 +148,8 @@ void Mission::hop_fill_vel(double Vx, double Vy, double Vz, double yaw)
   controlVelYawRate.axes.push_back(yaw);
   ctrlVelYawratePub.publish(controlVelYawRate);
 }
+
+/////////////////////////////////////////////////////////////"hop_vel_pos"///////////////////////////////////////////////////////////////////////////////////////
 
 int Mission::hop_vel_pos(float x, float y, float z, float yaw)
 {
@@ -200,6 +172,9 @@ int Mission::hop_vel_pos(float x, float y, float z, float yaw)
 
 
 }
+
+/////////////////////////////////////////////////////////////"hopex_to_pos"///////////////////////////////////////////////////////////////////////////////////////
+
 int Mission::hopex_to_pos(float x, float y, float z, float yaw)
 {
   ROS_INFO("hopex_to_pos called");
@@ -235,6 +210,8 @@ int Mission::hopex_to_pos(float x, float y, float z, float yaw)
 return true;
 }
 
+////////////////////////////////////////////////////////////////////////////"create_position_matrix"/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int Mission::create_position_matrix(std::vector<std::vector<float>> &pos_matrix, float x, float y, float z, float yaw)  // not defined
 {
   ROS_INFO("hopex_to_pos called");
@@ -267,10 +244,23 @@ int Mission::create_position_matrix(std::vector<std::vector<float>> &pos_matrix,
 
 
 }
+
+///////////////////////////////////////////////////////////////////////////"hop_step"////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool Mission::hop_step(double xc, double yc, double zc, double tc)
+
 {
-  hop_fill_vel(x_vel,y_vel,z_vel-1.66*tc,0);
+
+  if(xc>0.2&&yc>0.2&&zc>0.2)
+    {
+        hop_fill_vel(x_vel,y_vel,z_vel-1.66*tc,0);
+        return false;
+    }
+  else return true;
 }
+
+
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
 void Mission::Hop_step()
 {
   ROS_INFO("entered step");
@@ -370,6 +360,8 @@ void Mission::Hop_step()
   }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////"Hop_step_vel_pos"////////////////////////////////////////////////////////////////////////////////////
+
 void Mission::Hop_step_vel_pos()
 {
   ROS_INFO("entered step");
@@ -409,13 +401,6 @@ void Mission::Hop_step_vel_pos()
     yCmd = yOffsetRemaining;
 
   zCmd = start_local_position.z + target_offset_z;
-
-
-
-  /*!
-   * @brief: if we already started breaking, keep break for 50 sample (1sec)
-   *         and call it done, else we send normal command
-   */
 
 if(start_flag)
 {
@@ -495,9 +480,9 @@ else{
 
   }
 }
-
-
 }
+
+
 //-------------------xxxxxx---------------------xxxxxx-----------------------xxxxxxx------------------------xxxxxxxx-----------------------xxxxxx----------------------------xxxxxxx
 void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
                          sensor_msgs::NavSatFix& target,
@@ -513,6 +498,9 @@ void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
 }
 
 
+/////////////////////////////////////////////////////////////"quternions to euler angles"///////////////////////////////////////////////////////////////////////////////////////
+
+
 geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
 {
   geometry_msgs::Vector3 ans;
@@ -522,7 +510,7 @@ geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
   return ans;
 }
 
-
+/////////////////////////////////////////////////////////////"landing_initiate"///////////////////////////////////////////////////////////////////////////////////////
 bool landing_initiate(void)
 {
   dji_sdk::DroneTaskControl droneTaskControl;
@@ -539,7 +527,9 @@ bool landing_initiate(void)
 
   return true;
 }
-//--------xxxx--------xxxxx-----ARMING of Motors and Landing---xxxx---------xxxx------------xxxx----------------------------
+
+/////////////////////////////////////////////////////////////"arm_motors and disarm_motors"///////////////////////////////////////////////////////////////////////////////////////
+
 bool arm_motors()
 {
   dji_sdk::DroneArmControl droneArmControl;
@@ -565,11 +555,17 @@ bool disarm_motors()
   }
   return true;
 }
+
+//////////////////////////////////////////////////////////////"optimization_function"///////////////////////////////////////////////////////////////////////////////////////
+
 double optimization_function(double x) // not yet prototyped
 {
   //this function is intentended to call from the
   return (((hop.Ry)/x)*((hop.Ry)/x) + ((hop.Rx)/x)*((hop.Rx)/x) + (hop.Rz/x + 1.66*x/2)*(hop.Rz/x + 1.66*x/2));
 }
+
+/////////////////////////////////////////////////////////////////"set_filter_main////////////////////////////////////////////////////////////////////////////////////////////"
+
 void set_filter_main()    // prototyped in the kalman_filter_spacetrex header
 { int m = 3, n = 3;
   double dt = 0.01;
@@ -610,6 +606,8 @@ void set_filter_main()    // prototyped in the kalman_filter_spacetrex header
 
 }
 
+//////////////////////////////////////////////////////////////////////////"getVelocity_callback"///////////////////////////////////////////////////////////////////////////////////////
+
 void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // prototyped in the flight control header
 {
   ROS_INFO("In Velocity Callback loop");
@@ -628,14 +626,19 @@ void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // 
     if(to_stop)
     {
       kfs.setup_done = false;
+      hop.finished = true;
     }
+    else
+    hop.finished = false;
     //hopper_vel.hop_fill_vel(hop.x_vel, hop.y_vel, hop.z_vel);
 
   }
-  landing_initiate();
 
 
 }
+
+//////////////////////////////////////////////////////////////////////////////////"set_optimum_velocity"////////////////////////////////////////////////////////////////////////////////////
+
 bool set_optimum_velocity()   //not yet prototyped
 {
     if(!hop.start_flag)
@@ -666,8 +669,8 @@ bool set_optimum_velocity()   //not yet prototyped
 
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//-----xxxxxxxxx-------------------xxxxxxxxxxxxxxx-----------xxxxxxxxxx-------------xxx---------------------------
 bool takeoff_land(int task)
 {
   dji_sdk::DroneTaskControl droneTaskControl;
@@ -821,6 +824,7 @@ void display_mode_callback(const std_msgs::UInt8::ConstPtr& msg)
  * handling. Note M100 flight status is different
  * from A3/N3 flight status.
  */
+
 bool
 monitoredTakeoff()
 {
