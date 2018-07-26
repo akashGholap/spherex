@@ -55,6 +55,7 @@ public:
   double xf,yf,zf; //final position
   double Rx,Ry,Rz;
   double optimum_time;
+  
   //double Velx,Vely,Velz_c,Velz;
 
   float target_offset_x;
@@ -122,6 +123,9 @@ public:
    Rx = xf - xi;
    Ry = yf - yi;
    Rz = zf - zi;
+   x_vel = 0;
+   y_vel = 0;
+   z_vel = 0;
    start_flag = true;
  }
 

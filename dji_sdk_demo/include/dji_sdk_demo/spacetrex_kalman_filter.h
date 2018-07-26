@@ -17,6 +17,10 @@ public:
 
   double T0 , t; //t_pre_sec, t_pre_nsec,t_sec,t_nsec;
 
+  int t_nsec, t_sec;
+
+  double t_pre, t_c;
+
   double dt_;
 
   //double Rx,Ry,Rz;
@@ -40,7 +44,7 @@ public:
 
 kalman_filter(int m, int n, double dt)
     :  dt_(dt),A_(m,n),B_(m,1),C_(m,n),Q_(m,n),R_(m,n),P_(m,n),K_(m,n),P0_(m,n),m_(m), n_(n), setup_done(true),
-    I(n, n), xhat(n), xhat_new(n),x_(n), T0(0), t(0),u(1)
+    I(n, n), xhat(n), xhat_new(n),x_(n), T0(0), t(0),u(1),t_nsec(0),t_sec(0),t_pre(0),t_c(0)
     {
        I.setIdentity();
        xhat.setZero();
@@ -67,6 +71,10 @@ void set_filter(double dt,
       R_ = R;
       P_ = P;
       P0_ = P0;
+      t_nsec = 0;
+      t_sec = 0;
+      t_c = 0;
+      t_pre = 0;
       setup_done = true;
       std::cout<<setup_done;
 
@@ -80,10 +88,6 @@ void predict() //following the trend class function implementations is done in h
 
 void estimate(Eigen::Vector3d& V)
 {
-  xhat_new = A_ * xhat;
-
-  P_ = A_*P_*A_.transpose() + Q_;
-
   K_ = P_*C_.transpose()*(C_*P_*C_.transpose() + R_).inverse();
 
   xhat_new += K_ * (V - C_*xhat_new);

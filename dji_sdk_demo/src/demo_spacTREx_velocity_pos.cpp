@@ -145,17 +145,38 @@ bool Mission::hopex(float x, float y, float z, float yaw)
 
 }
 
+///////////////////////////////////////////////////////////////////////////"hop_step"////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Mission::hop_step(double xcr, double ycr, double zcr, double tc)
+
+{
+  ROS_INFO("Executing Step");
+  ROS_INFO("%lf, %lf, %lf", xcr,ycr,zcr);
+  if((xcr>0.2)||(ycr>0.2)||(zcr>0.2))
+    {
+        ROS_INFO("In Bound");
+        hop_fill_vel(hop.x_vel,hop.y_vel,hop.z_vel-1.66*tc,0);
+        ROS_INFO("%lf, %lf, %lf", hop.x_vel,hop.y_vel,hop.z_vel-1.66*tc);
+        return false;
+    }
+  else {return true;}
+  return false;
+}
+
+
 
 /////////////////////////////////////////////////////////////"hop_fill_vel"///////////////////////////////////////////////////////////////////////////////////////
 
 void Mission::hop_fill_vel(double Vx, double Vy, double Vz, double yaw)
 {
+
   sensor_msgs::Joy controlVelYawRate;
   controlVelYawRate.axes.push_back(Vx);
   controlVelYawRate.axes.push_back(Vy);
   controlVelYawRate.axes.push_back(Vz);
   controlVelYawRate.axes.push_back(yaw);
   ctrlVelYawratePub.publish(controlVelYawRate);
+  ROS_INFO("PUBLISHING vELOCITY");
 }
 
 /////////////////////////////////////////////////////////////"hop_vel_pos"///////////////////////////////////////////////////////////////////////////////////////
@@ -254,25 +275,6 @@ int Mission::create_position_matrix(std::vector<std::vector<float>> &pos_matrix,
 
 }
 
-///////////////////////////////////////////////////////////////////////////"hop_step"////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool Mission::hop_step(double xcr, double ycr, double zcr, double tc)
-
-{
-  ROS_INFO("Executing Step");
-  ROS_INFO("%lf, %lf, %lf", xcr,ycr,zcr);
-  if((xcr>0.2)||(ycr>0.2)||(zcr>0.2))
-    {
-        ROS_INFO("In Bound");
-        hop_fill_vel(hop.x_vel,hop.y_vel,hop.z_vel-1.66*tc,0);
-        ROS_INFO("%lf, %lf, %lf", hop.x_vel,hop.y_vel,hop.z_vel-1.66*tc);
-        return false;
-    }
-  else {return true;}
-  return false;
-}
-
-
 
 /////////////////////////////////////////////////////////////"landing_initiate"///////////////////////////////////////////////////////////////////////////////////////
 bool landing_initiate(void)
@@ -337,7 +339,7 @@ void set_filter_main()    // prototyped in the kalman_filter_spacetrex header
                                0,1,0,
                                0,0,1; //system matrix
 
-  Eigen::MatrixXd B(n,1); B << 0, 0, -0.166;   //Control Input Matrix
+  Eigen::MatrixXd B(n,1); B << 0, 0, -0.0162;   //Control Input Matrix
 
   Eigen::MatrixXd C(m,n); C << 1,0,0,
                                0,1,0,
@@ -378,16 +380,21 @@ void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // 
   if(kfs.setup_done)
   {
     ROS_INFO("kalman_filter Setup-done is now up");
-    Eigen::Vector3d vel_rtk(vel_from_sdk.vector.x, vel_from_sdk.vector.y ,vel_from_sdk.vector.z + kfs.t*1.66 );
+    kfs.t_sec = vel_from_sdk.header.stamp.sec;
+    kfs.t_nsec = vel_from_sdk.header.stamp.nsec;
+    double t_c = kfs.t_sec + 0.000000001*kfs.t_nsec;
+    Eigen::Vector3d vel_rtk(vel_from_sdk.vector.x, vel_from_sdk.vector.y ,vel_from_sdk.vector.z);
     kfs.predict();
     kfs.estimate(vel_rtk);
     kfs.t= kfs.t + kfs.dt_ ;
+
     ROS_INFO("%lf,%lf,%lf", kfs.xhat[0],kfs.xhat[1],kfs.xhat[2]);
+
     double xcr = hop.Rx - kfs.xhat[0]*kfs.t;
     double ycr = hop.Ry - kfs.xhat[1]*kfs.t;
-    double zcr = hop.Rz - kfs.xhat[2]*kfs.t;
+    double zcr = hop.Rz - (kfs.xhat[2]+1.62*kfs.t)*kfs.t + (1/2)*1.62*kfs.t*kfs.t;
     bool to_stop = hop.hop_step(xcr,ycr,zcr,kfs.t);
-    ROS_INFO(to_stop? "true":"stop");
+    ROS_INFO(to_stop? "true":"FALSE");
     if(to_stop)
     {
       kfs.setup_done = false;
@@ -395,6 +402,8 @@ void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // 
     }
     else
     hop.finished = false;
+
+    kfs.t_pre = kfs.t_c;
     //hopper_vel.hop_fill_vel(hop.x_vel, hop.y_vel, hop.z_vel);
 
   }
@@ -425,7 +434,7 @@ bool set_optimum_velocity()   //not yet prototyped
       t = dlib::find_min_single_variable(optimization_function, starting_point, begin, end, eps, max_iter, initial_search_radius);
       hop.x_vel = (hop.Rx/t);
       hop.y_vel = (hop.Ry/t);
-      hop.z_vel = (hop.Rz/t + 1.66*t/2);
+      hop.z_vel = (hop.Rz/t + 1.66*t);
       ROS_INFO("optimization over %lf", hop.optimum_time);
       return true;
     }
