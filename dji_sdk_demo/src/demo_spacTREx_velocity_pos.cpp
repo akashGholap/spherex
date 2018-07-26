@@ -95,14 +95,14 @@ int main(int argc, char** argv)
     }
 
     hopping_result = hop.finished;
-    if (hopping_result)
-    {
-      bool landing = landing_initiate();
-      if (!landing)
-      {
-        hop.hop_fill_vel(0,0,0,0);
-      }
-    }
+    // if (hopping_result)
+    // {
+    //   bool landing = landing_initiate();
+    //   if (!landing)
+    //   {
+    //     hop.hop_fill_vel(0,0,0,0);
+    //   }
+    // }
 
 
 
