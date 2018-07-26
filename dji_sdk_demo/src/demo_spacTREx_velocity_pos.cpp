@@ -436,8 +436,7 @@ bool set_optimum_velocity()   //not yet prototyped
       hop.y_vel = (hop.Ry/hop.optimum_time);
       hop.z_vel = (hop.Rz/hop.optimum_time + 1.62*hop.optimum_time/2);
       ROS_INFO("optimization over %lf", hop.optimum_time);
-      ROS_INFO()
-
+      ROS_INFO("initial velocity %lf,%lf,%lf", hop.x_vel,hop.y_vel,hop.z_vel);
       return true;
     }
 
