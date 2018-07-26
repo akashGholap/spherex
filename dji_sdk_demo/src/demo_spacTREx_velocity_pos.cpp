@@ -261,13 +261,15 @@ bool Mission::hop_step(double xcr, double ycr, double zcr, double tc)
 {
   ROS_INFO("Executing Step");
   ROS_INFO("%lf, %lf, %lf", xcr,ycr,zcr);
-  if((xcr>0.2)&&(ycr>0.2)&&(zcr>0.2))
+  if((xcr>0.2)||(ycr>0.2)||(zcr>0.2))
     {
         ROS_INFO("In Bound");
         hop_fill_vel(x_vel,y_vel,z_vel-1.66*tc,0);
+        ROS_INFO("%lf, %lf, %lf", x_vel,y_vel,z_vel-1.66*tc);
         return false;
     }
-  else return true;
+  else {return true;}
+  return false;
 }
 
 
@@ -289,7 +291,6 @@ bool landing_initiate(void)
 
   return true;
 }
-
 /////////////////////////////////////////////////////////////"arm_motors and disarm_motors"///////////////////////////////////////////////////////////////////////////////////////
 
 bool arm_motors()
