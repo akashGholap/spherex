@@ -264,8 +264,8 @@ bool Mission::hop_step(double xcr, double ycr, double zcr, double tc)
   if((xcr>0.2)||(ycr>0.2)||(zcr>0.2))
     {
         ROS_INFO("In Bound");
-        hop_fill_vel(x_vel,y_vel,z_vel-1.66*tc,0);
-        ROS_INFO("%lf, %lf, %lf", x_vel,y_vel,z_vel-1.66*tc);
+        hop_fill_vel(hop.x_vel,hop.y_vel,hop.z_vel-1.66*tc,0);
+        ROS_INFO("%lf, %lf, %lf", hop.x_vel,hop.y_vel,hop.z_vel-1.66*tc);
         return false;
     }
   else {return true;}
