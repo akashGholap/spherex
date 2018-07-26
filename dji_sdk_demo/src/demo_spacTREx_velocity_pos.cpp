@@ -326,7 +326,7 @@ bool disarm_motors()
 double optimization_function(double x) // not yet prototyped
 {
   //this function is intentended to call from the
-  return (((hop.Ry)/x)*((hop.Ry)/x) + ((hop.Rx)/x)*((hop.Rx)/x) + (hop.Rz/x + 1.66*x/2)*(hop.Rz/x + 1.66*x/2));
+  return (((hop.Ry)/x)*((hop.Ry)/x) + ((hop.Rx)/x)*((hop.Rx)/x) + (hop.Rz/x + 1.62*x/2)*(hop.Rz/x + 1.62*x/2));
 }
 
 /////////////////////////////////////////////////////////////////"set_filter_main////////////////////////////////////////////////////////////////////////////////////////////"
@@ -432,10 +432,12 @@ bool set_optimum_velocity()   //not yet prototyped
       const long max_iter = 100;
       const double initial_search_radius = 0.1;
       t = dlib::find_min_single_variable(optimization_function, starting_point, begin, end, eps, max_iter, initial_search_radius);
-      hop.x_vel = (hop.Rx/t);
-      hop.y_vel = (hop.Ry/t);
-      hop.z_vel = (hop.Rz/t + 1.66*t);
+      hop.x_vel = (hop.Rx/hop.optimum_time);
+      hop.y_vel = (hop.Ry/hop.optimum_time);
+      hop.z_vel = (hop.Rz/hop.optimum_time + 1.62*hop.optimum_time/2);
       ROS_INFO("optimization over %lf", hop.optimum_time);
+      ROS_INFO()
+
       return true;
     }
 
