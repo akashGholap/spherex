@@ -256,11 +256,11 @@ int Mission::create_position_matrix(std::vector<std::vector<float>> &pos_matrix,
 
 ///////////////////////////////////////////////////////////////////////////"hop_step"////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Mission::hop_step(double xc, double yc, double zc, double tc)
+bool Mission::hop_step(double xcr, double ycr, double zcr, double tc)
 
 {
   ROS_INFO("Executing Step");
-  if(xc>0.2&&yc>0.2&&zc>0.2)
+  if(xcr>0.2&&ycr>0.2&&zcr>0.2)
     {
         ROS_INFO("In Bound");
         hop_fill_vel(x_vel,y_vel,z_vel-1.66*tc,0);
@@ -269,6 +269,224 @@ bool Mission::hop_step(double xc, double yc, double zc, double tc)
   else return true;
 }
 
+
+
+/////////////////////////////////////////////////////////////"landing_initiate"///////////////////////////////////////////////////////////////////////////////////////
+bool landing_initiate(void)
+{
+  dji_sdk::DroneTaskControl droneTaskControl;
+
+  droneTaskControl.request.task = 6;
+
+  drone_task_service.call(droneTaskControl);
+
+  if(!droneTaskControl.response.result)
+  {
+    ROS_ERROR("landing failed");
+    return false;
+  }
+
+  return true;
+}
+
+/////////////////////////////////////////////////////////////"arm_motors and disarm_motors"///////////////////////////////////////////////////////////////////////////////////////
+
+bool arm_motors()
+{
+  dji_sdk::DroneArmControl droneArmControl;
+  droneArmControl.request.arm = 1;
+  drone_arm_service.call(droneArmControl);
+  if(!droneArmControl.response.result)
+  {
+    ROS_ERROR("Arming Failed");
+      return false;
+  }
+  return true;
+}
+
+bool disarm_motors()
+{
+  dji_sdk::DroneArmControl droneArmControl;
+  droneArmControl.request.arm = 0;
+  drone_arm_service.call(droneArmControl);
+  if(!droneArmControl.response.result)
+  {
+    ROS_ERROR("Disarming Failed");
+      return false;
+  }
+  return true;
+}
+
+//////////////////////////////////////////////////////////////"optimization_function"///////////////////////////////////////////////////////////////////////////////////////
+
+double optimization_function(double x) // not yet prototyped
+{
+  //this function is intentended to call from the
+  return (((hop.Ry)/x)*((hop.Ry)/x) + ((hop.Rx)/x)*((hop.Rx)/x) + (hop.Rz/x + 1.66*x/2)*(hop.Rz/x + 1.66*x/2));
+}
+
+/////////////////////////////////////////////////////////////////"set_filter_main////////////////////////////////////////////////////////////////////////////////////////////"
+
+void set_filter_main()    // prototyped in the kalman_filter_spacetrex header
+{ int m = 3, n = 3;
+  double dt = 0.01;
+  ROS_INFO("to set up KF");
+  Eigen::Matrix3d A(m,n); A << 1,0,0,
+                               0,1,0,
+                               0,0,1; //system matrix
+
+  Eigen::MatrixXd B(n,1); B << 0, 0, -0.166;   //Control Input Matrix
+
+  Eigen::MatrixXd C(m,n); C << 1,0,0,
+                               0,1,0,
+                               0,0,1; //Output Matrix
+
+  Eigen::MatrixXd K(m,n); K <<0.3229,    0.3229,    0.3229,
+                              0.3229,    0.3229,    0.3229,
+                              0.3229,    0.3229,    0.3229;
+
+  Eigen::MatrixXd Q(m,n); Q << 1e-1, 1e-1, 1e-1,
+                               1e-1, 1e-1, 1e-1,
+                               1e-1, 1e-1, 1e-1;
+
+  Eigen::MatrixXd R(m,n); R << 0.01, 0, 0,
+                               0, 0.01, 0,
+                               0, 0, 0.01;
+  Eigen::MatrixXd P(m,n); P << 0.1, 0, 0,
+                               0, 0.1, 0,
+                               0, 0, 0.1;
+  Eigen::MatrixXd P0(m,n); P0 << 0.1, 0, 0,
+                               0, 0.1, 0,
+                               0, 0, 0.1;
+
+
+  kfs.set_filter(dt,A,B,C,Q,K,R,P,P0);
+
+  ROS_INFO("filter is now set");
+  std::cout<<kfs.setup_done;
+
+}
+
+//////////////////////////////////////////////////////////////////////////"getVelocity_callback"///////////////////////////////////////////////////////////////////////////////////////
+
+void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // prototyped in the flight control header
+{
+  ROS_INFO("In Velocity Callback loop");
+
+  if(kfs.setup_done)
+  {
+    ROS_INFO("kalman_filter Setup-done is now up");
+    Eigen::Vector3d vel_rtk(vel_from_sdk.vector.x, vel_from_sdk.vector.y ,vel_from_sdk.vector.z + kfs.t*1.66 );
+    kfs.predict();
+    kfs.estimate(vel_rtk);
+    kfs.t= kfs.t + kfs.dt_ ;
+    double xcr = hop.Rx - kfs.xhat[0]*kfs.t;
+    double ycr = hop.Ry - kfs.xhat[1]*kfs.t;
+    double zcr = hop.Rz - kfs.xhat[2]*kfs.t;
+    bool to_stop = hop.hop_step(xcr,ycr,zcr,kfs.t);
+    if(to_stop)
+    {
+      kfs.setup_done = false;
+      hop.finished = true;
+    }
+    else
+    hop.finished = false;
+    //hopper_vel.hop_fill_vel(hop.x_vel, hop.y_vel, hop.z_vel);
+
+  }
+
+
+}
+
+//////////////////////////////////////////////////////////////////////////////////"set_optimum_velocity"/////////////////////////////////////////////////////////////////////////////// b
+
+bool set_optimum_velocity()   //not yet prototyped
+{
+    if(!hop.start_flag)
+    {
+      ROS_INFO("Please Set Object hop from mission class first");
+      return false;
+    }
+    else
+    {
+      ROS_INFO("Optimization starting");
+      double t;
+      const double begin = 0.1;
+      //double begin1 = 0.1;
+      double& starting_point = hop.optimum_time;
+      const double end = 3;
+      const double eps = 0.1;
+      const long max_iter = 100;
+      const double initial_search_radius = 0.1;
+      t = dlib::find_min_single_variable(optimization_function, starting_point, begin, end, eps, max_iter, initial_search_radius);
+      hop.x_vel = (hop.Rx/t);
+      hop.y_vel = (hop.Ry/t);
+      hop.z_vel = (hop.Rz/t);
+      ROS_INFO("optimization over %lf", hop.optimum_time);
+      return true;
+    }
+
+
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool takeoff_land(int task)
+{
+  dji_sdk::DroneTaskControl droneTaskControl;
+
+  droneTaskControl.request.task = task;
+
+  drone_task_service.call(droneTaskControl);
+
+  if(!droneTaskControl.response.result)
+  {
+    ROS_ERROR("takeoff_land fail");
+    return false;
+  }
+
+  return true;
+}
+
+
+bool obtain_control()
+{
+  dji_sdk::SDKControlAuthority authority;
+  authority.request.control_enable=1;
+  sdk_ctrl_authority_service.call(authority);
+
+  if(!authority.response.result)
+  {
+    ROS_ERROR("obtain control failed!");
+    return false;
+  }
+
+  return true;
+}
+
+bool is_M100()
+{
+  dji_sdk::QueryDroneVersion query;
+  query_version_service.call(query);
+
+  if(query.response.version == DJISDK::DroneFirmwareVersion::M100_31)
+  {
+    return true;
+  }
+
+  return false;
+}
+
+void attitude_callback(const geometry_msgs::QuaternionStamped::ConstPtr& msg)
+{
+  current_atti = msg->quaternion;
+}
+
+void local_position_callback(const geometry_msgs::PointStamped::ConstPtr& msg)
+{
+  current_local_pos = msg->point;
+}
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
 void Mission::Hop_step()
@@ -518,223 +736,6 @@ geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
   tf::Matrix3x3 R_FLU2ENU(tf::Quaternion(quat.x, quat.y, quat.z, quat.w));
   R_FLU2ENU.getRPY(ans.x, ans.y, ans.z);
   return ans;
-}
-
-/////////////////////////////////////////////////////////////"landing_initiate"///////////////////////////////////////////////////////////////////////////////////////
-bool landing_initiate(void)
-{
-  dji_sdk::DroneTaskControl droneTaskControl;
-
-  droneTaskControl.request.task = 6;
-
-  drone_task_service.call(droneTaskControl);
-
-  if(!droneTaskControl.response.result)
-  {
-    ROS_ERROR("landing failed");
-    return false;
-  }
-
-  return true;
-}
-
-/////////////////////////////////////////////////////////////"arm_motors and disarm_motors"///////////////////////////////////////////////////////////////////////////////////////
-
-bool arm_motors()
-{
-  dji_sdk::DroneArmControl droneArmControl;
-  droneArmControl.request.arm = 1;
-  drone_arm_service.call(droneArmControl);
-  if(!droneArmControl.response.result)
-  {
-    ROS_ERROR("Arming Failed");
-      return false;
-  }
-  return true;
-}
-
-bool disarm_motors()
-{
-  dji_sdk::DroneArmControl droneArmControl;
-  droneArmControl.request.arm = 0;
-  drone_arm_service.call(droneArmControl);
-  if(!droneArmControl.response.result)
-  {
-    ROS_ERROR("Disarming Failed");
-      return false;
-  }
-  return true;
-}
-
-//////////////////////////////////////////////////////////////"optimization_function"///////////////////////////////////////////////////////////////////////////////////////
-
-double optimization_function(double x) // not yet prototyped
-{
-  //this function is intentended to call from the
-  return (((hop.Ry)/x)*((hop.Ry)/x) + ((hop.Rx)/x)*((hop.Rx)/x) + (hop.Rz/x + 1.66*x/2)*(hop.Rz/x + 1.66*x/2));
-}
-
-/////////////////////////////////////////////////////////////////"set_filter_main////////////////////////////////////////////////////////////////////////////////////////////"
-
-void set_filter_main()    // prototyped in the kalman_filter_spacetrex header
-{ int m = 3, n = 3;
-  double dt = 0.01;
-  ROS_INFO("to set up KF");
-  Eigen::Matrix3d A(m,n); A << 1,0,0,
-                               0,1,0,
-                               0,0,1; //system matrix
-
-  Eigen::MatrixXd B(n,1); B << 0, 0, -0.166;   //Control Input Matrix
-
-  Eigen::MatrixXd C(m,n); C << 1,0,0,
-                               0,1,0,
-                               0,0,1; //Output Matrix
-
-  Eigen::MatrixXd K(m,n); K <<0.3229,    0.3229,    0.3229,
-                              0.3229,    0.3229,    0.3229,
-                              0.3229,    0.3229,    0.3229;
-
-  Eigen::MatrixXd Q(m,n); Q << 1e-1, 1e-1, 1e-1,
-                               1e-1, 1e-1, 1e-1,
-                               1e-1, 1e-1, 1e-1;
-
-  Eigen::MatrixXd R(m,n); R << 0.01, 0, 0,
-                               0, 0.01, 0,
-                               0, 0, 0.01;
-  Eigen::MatrixXd P(m,n); P << 0.1, 0, 0,
-                               0, 0.1, 0,
-                               0, 0, 0.1;
-  Eigen::MatrixXd P0(m,n); P0 << 0.1, 0, 0,
-                               0, 0.1, 0,
-                               0, 0, 0.1;
-
-
-  kfs.set_filter(dt,A,B,C,Q,K,R,P,P0);
-
-  ROS_INFO("filter is now set");
-  std::cout<<kfs.setup_done;
-
-}
-
-//////////////////////////////////////////////////////////////////////////"getVelocity_callback"///////////////////////////////////////////////////////////////////////////////////////
-
-void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // prototyped in the flight control header
-{
-  ROS_INFO("In Velocity Callback loop");
-
-  if(kfs.setup_done)
-  {
-    ROS_INFO("kalman_filter Setup-done is now up");
-    Eigen::Vector3d vel_rtk(vel_from_sdk.vector.x, vel_from_sdk.vector.y ,vel_from_sdk.vector.z + kfs.t*1.66 );
-    kfs.predict();
-    kfs.estimate(vel_rtk);
-    kfs.t= kfs.t + kfs.dt_ ;
-    double xc = kfs.xhat[0]*kfs.t;
-    double yc = kfs.xhat[1]*kfs.t;
-    double zc = kfs.xhat[2]*kfs.t;
-    bool to_stop = hop.hop_step(xc,yc,zc,kfs.t);
-    if(to_stop)
-    {
-      kfs.setup_done = false;
-      hop.finished = true;
-    }
-    else
-    hop.finished = false;
-    //hopper_vel.hop_fill_vel(hop.x_vel, hop.y_vel, hop.z_vel);
-
-  }
-
-
-}
-
-//////////////////////////////////////////////////////////////////////////////////"set_optimum_velocity"////////////////////////////////////////////////////////////////////////////////////
-
-bool set_optimum_velocity()   //not yet prototyped
-{
-    if(!hop.start_flag)
-    {
-      ROS_INFO("Please Set Object hop from mission class first");
-      return false;
-    }
-    else
-    {
-      ROS_INFO("Optimization starting");
-      double t;
-      const double begin = 0.1;
-      //double begin1 = 0.1;
-      double& starting_point = hop.optimum_time;
-      const double end = 3;
-      const double eps = 0.1;
-      const long max_iter = 100;
-      const double initial_search_radius = 0.1;
-      t = dlib::find_min_single_variable(optimization_function, starting_point, begin, end, eps, max_iter, initial_search_radius);
-      hop.x_vel = (hop.Rx/t);
-      hop.y_vel = (hop.Ry/t);
-      hop.z_vel = (hop.Rz/t);
-      ROS_INFO("optimization over %lf", hop.optimum_time);
-      return true;
-    }
-
-
-
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool takeoff_land(int task)
-{
-  dji_sdk::DroneTaskControl droneTaskControl;
-
-  droneTaskControl.request.task = task;
-
-  drone_task_service.call(droneTaskControl);
-
-  if(!droneTaskControl.response.result)
-  {
-    ROS_ERROR("takeoff_land fail");
-    return false;
-  }
-
-  return true;
-}
-
-
-bool obtain_control()
-{
-  dji_sdk::SDKControlAuthority authority;
-  authority.request.control_enable=1;
-  sdk_ctrl_authority_service.call(authority);
-
-  if(!authority.response.result)
-  {
-    ROS_ERROR("obtain control failed!");
-    return false;
-  }
-
-  return true;
-}
-
-bool is_M100()
-{
-  dji_sdk::QueryDroneVersion query;
-  query_version_service.call(query);
-
-  if(query.response.version == DJISDK::DroneFirmwareVersion::M100_31)
-  {
-    return true;
-  }
-
-  return false;
-}
-
-void attitude_callback(const geometry_msgs::QuaternionStamped::ConstPtr& msg)
-{
-  current_atti = msg->quaternion;
-}
-
-void local_position_callback(const geometry_msgs::PointStamped::ConstPtr& msg)
-{
-  current_local_pos = msg->point;
 }
 
 void gps_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)   //from gps_callback
