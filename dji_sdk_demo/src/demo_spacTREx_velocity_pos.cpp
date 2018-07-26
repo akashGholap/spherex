@@ -381,10 +381,12 @@ void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // 
     kfs.predict();
     kfs.estimate(vel_rtk);
     kfs.t= kfs.t + kfs.dt_ ;
+    ROS_INFO("%lf,%lf,%lf", kfs.xhat[0],kfs.xhat[1],kfs.xhat[2]);
     double xcr = hop.Rx - kfs.xhat[0]*kfs.t;
     double ycr = hop.Ry - kfs.xhat[1]*kfs.t;
     double zcr = hop.Rz - kfs.xhat[2]*kfs.t;
     bool to_stop = hop.hop_step(xcr,ycr,zcr,kfs.t);
+    ROS_INFO(to_stop? "true":"stop");
     if(to_stop)
     {
       kfs.setup_done = false;
