@@ -425,7 +425,7 @@ bool set_optimum_velocity()   //not yet prototyped
       t = dlib::find_min_single_variable(optimization_function, starting_point, begin, end, eps, max_iter, initial_search_radius);
       hop.x_vel = (hop.Rx/t);
       hop.y_vel = (hop.Ry/t);
-      hop.z_vel = (hop.Rz/t);
+      hop.z_vel = (hop.Rz/t + 1.66*t/2);
       ROS_INFO("optimization over %lf", hop.optimum_time);
       return true;
     }
