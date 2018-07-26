@@ -259,9 +259,10 @@ int Mission::create_position_matrix(std::vector<std::vector<float>> &pos_matrix,
 bool Mission::hop_step(double xc, double yc, double zc, double tc)
 
 {
-
+  ROS_INFO("Executing Step");
   if(xc>0.2&&yc>0.2&&zc>0.2)
     {
+        ROS_INFO("In Bound");
         hop_fill_vel(x_vel,y_vel,z_vel-1.66*tc,0);
         return false;
     }
