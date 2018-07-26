@@ -155,9 +155,10 @@ bool Mission::hop_step(double xcr, double ycr, double zcr, double tc)
   // if((xcr>0.2)||(ycr>0.2)||(zcr>0.2))
   //   {
         ROS_INFO("In Bound");
-        hop_fill_vel(hop.x_vel,hop.y_vel,hop.z_vel-1.66*tc,0);
-        ROS_INFO("%lf, %lf, %lf", hop.x_vel,hop.y_vel,hop.z_vel-1.66*tc);
+        hop_fill_vel(hop.x_vel,hop.y_vel,hop.z_vel-1.62*tc,0);
+        ROS_INFO("%lf, %lf, %lf", hop.x_vel,hop.y_vel,hop.z_vel-1.62*tc);
         return false;
+
   //   }
   // else {return true;}
   // return false;
@@ -427,7 +428,7 @@ bool set_optimum_velocity()   //not yet prototyped
       const double begin = 0.1;
       //double begin1 = 0.1;
       double& starting_point = hop.optimum_time;
-      const double end = 3;
+      const double end = 10;
       const double eps = 0.1;
       const long max_iter = 100;
       const double initial_search_radius = 0.1;
