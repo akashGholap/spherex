@@ -260,7 +260,8 @@ bool Mission::hop_step(double xcr, double ycr, double zcr, double tc)
 
 {
   ROS_INFO("Executing Step");
-  if(xcr>0.2&&ycr>0.2&&zcr>0.2)
+  ROS_INFO("%lf, %lf, %lf", xcr,ycr,zcr);
+  if((xcr>0.2)&&(ycr>0.2)&&(zcr>0.2))
     {
         ROS_INFO("In Bound");
         hop_fill_vel(x_vel,y_vel,z_vel-1.66*tc,0);
