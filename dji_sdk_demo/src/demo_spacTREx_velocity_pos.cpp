@@ -51,12 +51,12 @@ int main(int argc, char** argv)
   ros::Subscriber flightStatusSub = nh.subscribe("dji_sdk/flight_status", 100, &flight_status_callback);
   //ros::Subscriber displayModeSub = nh.subscribe("dji_sdk/display_mode", 100, &display_mode_callback);
   //ros::Subscriber localPosition = nh.subscribe("dji_sdk/local_position", 100, &local_position_callback);
-  ros::Subscriber getVelocity = nh.subscribe("dji_sdk/velocity" ,100, &getVelocity_callback);
+  ros::Subscriber getVelocity = nh.subscribe("dji_sdk/velocity" ,500, &getVelocity_callback);
 
   // Publish the control signal
   ctrlPosYawPub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUposition_yaw", 100);
 
-  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 100);
+  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 500);
 
   // Basic services
   sdk_ctrl_authority_service = nh.serviceClient<dji_sdk::SDKControlAuthority> ("dji_sdk/sdk_control_authority");
@@ -334,13 +334,13 @@ double optimization_function(double x) // not yet prototyped
 
 void set_filter_main()    // prototyped in the kalman_filter_spacetrex header
 { int m = 3, n = 3;
-  double dt = 0.01;
+  double dt = 0.002;
   ROS_INFO("to set up KF");
   Eigen::Matrix3d A(m,n); A << 1,0,0,
                                0,1,0,
                                0,0,1; //system matrix
 
-  Eigen::MatrixXd B(n,1); B << 0, 0, -0.0162;   //Control Input Matrix
+  Eigen::MatrixXd B(n,1); B << 0, 0, -0.0032;   //Control Input Matrix
 
   Eigen::MatrixXd C(m,n); C << 1,0,0,
                                0,1,0,

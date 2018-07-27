@@ -192,7 +192,7 @@ DJISDKNode::initFlightControl(ros::NodeHandle& nh)
 
   flight_control_velocity_yawrate_sub =
     nh.subscribe<sensor_msgs::Joy>(
-      "dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 100,
+      "dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 500,
       &DJISDKNode::flightControlVxVyVzYawrateCallback, this);
 
   flight_control_rollpitch_yawrate_vertpos_sub =
@@ -281,7 +281,7 @@ DJISDKNode::initPublisher(ros::NodeHandle& nh)
     nh.advertise<std_msgs::Float32>("dji_sdk/height_above_takeoff", 10);
 
   velocity_publisher =
-    nh.advertise<geometry_msgs::Vector3Stamped>("dji_sdk/velocity", 100);
+    nh.advertise<geometry_msgs::Vector3Stamped>("dji_sdk/velocity", 500);
 
   from_mobile_data_publisher =
     nh.advertise<dji_sdk::MobileData>("dji_sdk/from_mobile_data", 10);
