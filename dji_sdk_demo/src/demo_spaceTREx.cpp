@@ -124,7 +124,7 @@ int main(int argc, char** argv)
 /coordinates. Accurate when distances are small.
 !*/
 //----------------------------------xxxxxx---------"Hopping Executer"---------------xxxxxxx------------------------xxxxxxx-----------------------xxxxxxx--------------xxxxxx
-bool Mission::hopex(float x, float y, float z, float yaw)
+bool Mission::hopex(double x, double y, double z, double yaw)
 {
 
   float Vz_start = z;

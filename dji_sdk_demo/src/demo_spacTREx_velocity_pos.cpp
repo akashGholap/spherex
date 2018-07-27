@@ -91,33 +91,17 @@ int main(int argc, char** argv)
       {
         set_filter_main();
       }
+
       hopping_result = false;
     }
-
-    hopping_result = hop.finished;
-    // if (hopping_result)
-    // {
-    //   bool landing = landing_initiate();
-    //   if (!landing)
-    //   {
-    //     hop.hop_fill_vel(0,0,0,0);
-    //   }
-    // }
-
-
-
-    ros::spinOnce();
-
-  }
-
-  return 0;
+    hopping_result =  hop.hopex(hop.x_vel,hop.y_vel,hop.z_vel, 0);
+    ros::spin();
 }
-
 // Helper Functions
-
+}
 /////////////////////////////////////////////////////////////"hopex"///////////////////////////////////////////////////////////////////////////////////////
 
-bool Mission::hopex(float x, float y, float z, float yaw)
+bool Mission::hopex(double x, double y, double z, double yaw)
 {
 
   float Vz_start = z;
@@ -139,7 +123,7 @@ bool Mission::hopex(float x, float y, float z, float yaw)
 
 
    landing_initiate();
-   arm_motors();
+   //arm_motors();
    return true;
 
 
@@ -155,7 +139,8 @@ bool Mission::hop_step(double xcr, double ycr, double zcr, double tc)
   // if((xcr>0.2)||(ycr>0.2)||(zcr>0.2))
   //   {
         ROS_INFO("In Bound");
-        hop_fill_vel(hop.x_vel,hop.y_vel,hop.z_vel-1.62*tc,0);
+        //hop_fill_vel(hop.x_vel,hop.y_vel,hop.z_vel-1.62*tc,0);
+
         ROS_INFO("%lf, %lf, %lf", hop.x_vel,hop.y_vel,hop.z_vel-1.62*tc);
         return false;
 

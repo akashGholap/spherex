@@ -55,7 +55,7 @@ public:
   double xf,yf,zf; //final position
   double Rx,Ry,Rz;
   double optimum_time;
-  
+
   //double Velx,Vely,Velz_c,Velz;
 
   float target_offset_x;
@@ -96,7 +96,7 @@ public:
     start_flag = true;
   }
 
- bool hopex(float, float, float, float);
+ bool hopex(double, double, double, double);
 
  int hopex_to_pos(float x, float y, float z, float yaw);
 
