@@ -48,15 +48,15 @@ int main(int argc, char** argv)
   // Subscribe to messages from dji_sdk_node
   //ros::Subscriber attitudeSub = nh.subscribe("dji_sdk/attitude", 100, &attitude_callback);
   //ros::Subscriber gpsSub      = nh.subscribe("dji_sdk/gps_position", 100, &gps_callback);
-  ros::Subscriber flightStatusSub = nh.subscribe("dji_sdk/flight_status", 100, &flight_status_callback);
+  ros::Subscriber flightStatusSub = nh.subscribe("dji_sdk/flight_status", 10, &flight_status_callback);
   //ros::Subscriber displayModeSub = nh.subscribe("dji_sdk/display_mode", 100, &display_mode_callback);
   //ros::Subscriber localPosition = nh.subscribe("dji_sdk/local_position", 100, &local_position_callback);
-  ros::Subscriber getVelocity = nh.subscribe("dji_sdk/velocity" ,500, &getVelocity_callback);
+  ros::Subscriber getVelocity = nh.subscribe("dji_sdk/velocity" ,100, &getVelocity_callback);
 
   // Publish the control signal
   ctrlPosYawPub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUposition_yaw", 100);
 
-  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 500);
+  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 100);
 
   // Basic services
   sdk_ctrl_authority_service = nh.serviceClient<dji_sdk::SDKControlAuthority> ("dji_sdk/sdk_control_authority");
@@ -94,7 +94,7 @@ int main(int argc, char** argv)
 
       hopping_result = false;
     }
-    hopping_result =  hop.hopex(hop.x_vel,hop.y_vel,hop.z_vel, 0);
+    hopping_result = hop.finished;
     ros::spin();
 }
 // Helper Functions
@@ -139,7 +139,7 @@ bool Mission::hop_step(double xcr, double ycr, double zcr, double tc)
   // if((xcr>0.2)||(ycr>0.2)||(zcr>0.2))
   //   {
         ROS_INFO("In Bound");
-        //hop_fill_vel(hop.x_vel,hop.y_vel,hop.z_vel-1.62*tc,0);
+        hop_fill_vel(hop.x_vel,hop.y_vel,hop.z_vel-1.62*tc,0);
 
         ROS_INFO("%lf, %lf, %lf", hop.x_vel,hop.y_vel,hop.z_vel-1.62*tc);
         return false;
@@ -319,13 +319,13 @@ double optimization_function(double x) // not yet prototyped
 
 void set_filter_main()    // prototyped in the kalman_filter_spacetrex header
 { int m = 3, n = 3;
-  double dt = 0.002;
+  double dt = 0.01;
   ROS_INFO("to set up KF");
   Eigen::Matrix3d A(m,n); A << 1,0,0,
                                0,1,0,
                                0,0,1; //system matrix
 
-  Eigen::MatrixXd B(n,1); B << 0, 0, -0.0032;   //Control Input Matrix
+  Eigen::MatrixXd B(n,1); B << 0, 0, -0.0162;   //Control Input Matrix
 
   Eigen::MatrixXd C(m,n); C << 1,0,0,
                                0,1,0,
@@ -363,35 +363,44 @@ void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // 
 {
   ROS_INFO("In Velocity Callback loop");
 
+
   if(kfs.setup_done)
   {
-    ROS_INFO("kalman_filter Setup-done is now up");
-    kfs.t_sec = vel_from_sdk.header.stamp.sec;
-    kfs.t_nsec = vel_from_sdk.header.stamp.nsec;
-    double t_c = kfs.t_sec + 0.000000001*kfs.t_nsec;
-    Eigen::Vector3d vel_rtk(vel_from_sdk.vector.x, vel_from_sdk.vector.y ,vel_from_sdk.vector.z);
-    kfs.predict();
-    kfs.estimate(vel_rtk);
-    kfs.t= kfs.t + kfs.dt_ ;
-
-    ROS_INFO("%lf,%lf,%lf", kfs.xhat[0],kfs.xhat[1],kfs.xhat[2]);
-
-    double xcr = hop.Rx - kfs.xhat[0]*kfs.t;
-    double ycr = hop.Ry - kfs.xhat[1]*kfs.t;
-    double zcr = hop.Rz - (kfs.xhat[2]+1.62*kfs.t)*kfs.t + (1/2)*1.62*kfs.t*kfs.t;
-    bool to_stop = hop.hop_step(xcr,ycr,zcr,kfs.t);
-    ROS_INFO(to_stop? "true":"FALSE");
-    if(to_stop)
+    if(hop.wait_counter<=50)
     {
-      kfs.setup_done = false;
-      hop.finished = true;
+      hop.hop_fill_vel(0,0,0,0);
+      hop.wait_counter++;
+      hop.finished = false;
     }
     else
-    hop.finished = false;
+    {
+      ROS_INFO("kalman_filter Setup-done is now up");
+      kfs.t_sec = vel_from_sdk.header.stamp.sec;
+      kfs.t_nsec = vel_from_sdk.header.stamp.nsec;
+      double t_c = kfs.t_sec + 0.000000001*kfs.t_nsec;
+      Eigen::Vector3d vel_rtk(vel_from_sdk.vector.x, vel_from_sdk.vector.y ,vel_from_sdk.vector.z);
+      kfs.predict();
+      kfs.estimate(vel_rtk);
+      kfs.t= kfs.t + kfs.dt_ ;
+
+      ROS_INFO("%lf,%lf,%lf", kfs.xhat[0],kfs.xhat[1],kfs.xhat[2]);
+
+      double xcr = hop.Rx - kfs.xhat[0]*kfs.t;
+      double ycr = hop.Ry - kfs.xhat[1]*kfs.t;
+      double zcr = hop.Rz - (kfs.xhat[2]+1.62*kfs.t)*kfs.t + (1/2)*1.62*kfs.t*kfs.t;
+      bool to_stop = hop.hop_step(xcr,ycr,zcr,kfs.t);
+      ROS_INFO(to_stop? "true":"FALSE");
+      if(to_stop)
+      {
+        kfs.setup_done = false;
+        hop.finished = true;
+      }
+    else hop.finished = false;
+
 
     kfs.t_pre = kfs.t_c;
     //hopper_vel.hop_fill_vel(hop.x_vel, hop.y_vel, hop.z_vel);
-
+   }
   }
 
 

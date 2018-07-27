@@ -187,12 +187,12 @@ DJISDKNode::initFlightControl(ros::NodeHandle& nh)
 
   flight_control_position_yaw_sub =
     nh.subscribe<sensor_msgs::Joy>(
-      "dji_sdk/flight_control_setpoint_ENUposition_yaw", 100,
+      "dji_sdk/flight_control_setpoint_ENUposition_yaw", 10,
       &DJISDKNode::flightControlPxPyPzYawCallback, this);
 
   flight_control_velocity_yawrate_sub =
     nh.subscribe<sensor_msgs::Joy>(
-      "dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 500,
+      "dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 100,
       &DJISDKNode::flightControlVxVyVzYawrateCallback, this);
 
   flight_control_rollpitch_yawrate_vertpos_sub =
@@ -239,7 +239,7 @@ DJISDKNode::initPublisher(ros::NodeHandle& nh)
   rc_publisher = nh.advertise<sensor_msgs::Joy>("dji_sdk/rc", 10);
 
   attitude_publisher =
-    nh.advertise<geometry_msgs::QuaternionStamped>("dji_sdk/attitude", 100);
+    nh.advertise<geometry_msgs::QuaternionStamped>("dji_sdk/attitude", 10);
 
   battery_state_publisher =
     nh.advertise<sensor_msgs::BatteryState>("dji_sdk/battery_state",10);
@@ -254,7 +254,7 @@ DJISDKNode::initPublisher(ros::NodeHandle& nh)
 
   // Refer to dji_sdk.h for different enums for M100 and A3/N3
   flight_status_publisher =
-    nh.advertise<std_msgs::UInt8>("dji_sdk/flight_status", 100);
+    nh.advertise<std_msgs::UInt8>("dji_sdk/flight_status", 10);
 
   /*!
    * gps_health needs to be greater than 3 for gps_position and velocity topics
@@ -271,7 +271,7 @@ DJISDKNode::initPublisher(ros::NodeHandle& nh)
    *   Altitude [m]. Positive is above the WGS 84 ellipsoid
    */
   gps_position_publisher =
-    nh.advertise<sensor_msgs::NavSatFix>("dji_sdk/gps_position", 100);
+    nh.advertise<sensor_msgs::NavSatFix>("dji_sdk/gps_position", 10);
 
   /*!
    * Height above home altitude. It is valid only after drone
@@ -281,7 +281,7 @@ DJISDKNode::initPublisher(ros::NodeHandle& nh)
     nh.advertise<std_msgs::Float32>("dji_sdk/height_above_takeoff", 10);
 
   velocity_publisher =
-    nh.advertise<geometry_msgs::Vector3Stamped>("dji_sdk/velocity", 500);
+    nh.advertise<geometry_msgs::Vector3Stamped>("dji_sdk/velocity", 100);
 
   from_mobile_data_publisher =
     nh.advertise<dji_sdk::MobileData>("dji_sdk/from_mobile_data", 10);
@@ -291,7 +291,7 @@ DJISDKNode::initPublisher(ros::NodeHandle& nh)
     nh.advertise<geometry_msgs::Vector3Stamped>("dji_sdk/gimbal_angle", 10);
 
   local_position_publisher =
-      nh.advertise<geometry_msgs::PointStamped>("dji_sdk/local_position", 100);
+      nh.advertise<geometry_msgs::PointStamped>("dji_sdk/local_position", 10);
 
   local_frame_ref_publisher =
       nh.advertise<sensor_msgs::NavSatFix>("dji_sdk/local_frame_ref", 10, true);
@@ -300,7 +300,7 @@ DJISDKNode::initPublisher(ros::NodeHandle& nh)
       nh.advertise<sensor_msgs::NavSatFix>("dji_sdk/rtk_position", 10);
 
   rtk_velocity_publisher =
-      nh.advertise<geometry_msgs::Vector3>("dji_sdk/rtk_velocity", 100);
+      nh.advertise<geometry_msgs::Vector3>("dji_sdk/rtk_velocity", 10);
 
   rtk_yaw_publisher =
       nh.advertise<std_msgs::Int16>("dji_sdk/rtk_yaw", 10);
