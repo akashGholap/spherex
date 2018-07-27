@@ -51,6 +51,7 @@ public:
   int break_counter;
   int vel_counter;
   int wait_counter;
+  int up_counter;
 
   double xi,yi,zi; //initial position
   double xf,yf,zf; //final position
