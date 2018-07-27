@@ -366,7 +366,7 @@ void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // 
 
   if(kfs.setup_done)
   {
-    if(hop.wait_counter<=50)
+    if(hop.wait_counter<=200)
     {
       hop.hop_fill_vel(0,0,0,0);
       hop.wait_counter++;
