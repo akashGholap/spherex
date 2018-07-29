@@ -140,7 +140,6 @@ bool Mission::hop_step(double xcr, double ycr, double zcr, double tc)
   //   {
         ROS_INFO("In Bound");
         hop_fill_vel(hop.x_vel,hop.y_vel,hop.z_vel-1.62*tc,0);
-
         ROS_INFO("%lf, %lf, %lf", hop.x_vel,hop.y_vel,hop.z_vel-1.62*tc);
         return false;
 
@@ -148,7 +147,7 @@ bool Mission::hop_step(double xcr, double ycr, double zcr, double tc)
   // else {return true;}
   // return false;
 }
-
+//////////////////////////////////////////////////////////////////////////"custom landing sequence"////////////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////"hop_fill_vel"///////////////////////////////////////////////////////////////////////////////////////
@@ -366,10 +365,16 @@ void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // 
 
   if(kfs.setup_done)
   {
-    if(hop.wait_counter<=200)
+    if(hop.wait_counter<=100)
     {
       hop.hop_fill_vel(0,0,0,0);
       hop.wait_counter++;
+      hop.finished = false;
+    }
+    else if(hop.wait_counter>100&&hop.up_counter<=20)
+    {
+      hop.hop_fill_vel(0,0,0.5,0);
+      hop.up_counter++;
       hop.finished = false;
     }
     else
