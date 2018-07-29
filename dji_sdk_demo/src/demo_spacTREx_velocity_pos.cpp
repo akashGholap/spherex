@@ -95,6 +95,10 @@ int main(int argc, char** argv)
       hopping_result = false;
     }
     hopping_result = hop.finished;
+    if(hopping_result)
+    {
+      landing_initiate();
+    }
     ros::spin();
 }
 // Helper Functions
@@ -135,13 +139,15 @@ bool Mission::hop_step(double xcr, double ycr, double zcr, double tc)
 
 {
   ROS_INFO("Executing Step");
+  double z_vel_c = hop.z_vel-1.62*tc;
   ROS_INFO("%lf, %lf, %lf", xcr,ycr,zcr);
   // if((xcr>0.2)||(ycr>0.2)||(zcr>0.2))
   //   {
         ROS_INFO("In Bound");
         hop_fill_vel(hop.x_vel,hop.y_vel,hop.z_vel-1.62*tc,0);
-        ROS_INFO("%lf, %lf, %lf", hop.x_vel,hop.y_vel,hop.z_vel-1.62*tc);
-        return false;
+        ROS_INFO("%lf, %lf, %lf", hop.x_vel,hop.y_vel,z_vel_c);
+        if(z_vel_c<=(-0.8)*hop.z_vel) return true;
+        else return false;
 
   //   }
   // else {return true;}
@@ -373,7 +379,7 @@ void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // 
     }
     else if(hop.wait_counter>100&&hop.up_counter<=50)
     {
-      hop.hop_fill_vel(0,0,4,0);
+      hop.hop_fill_vel(0,0,3,0);
       hop.up_counter++;
       hop.finished = false;
     }
