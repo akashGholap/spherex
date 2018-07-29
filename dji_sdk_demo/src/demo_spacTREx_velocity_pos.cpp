@@ -373,7 +373,7 @@ void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // 
     }
     else if(hop.wait_counter>100&&hop.up_counter<=20)
     {
-      hop.hop_fill_vel(0,0,0.5,0);
+      hop.hop_fill_vel(0,0,2,0);
       hop.up_counter++;
       hop.finished = false;
     }
