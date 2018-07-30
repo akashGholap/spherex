@@ -98,7 +98,7 @@ int main(int argc, char** argv)
     hopping_result = hop.finished;
     landing_flag = hop.land;
     ROS_INFO(landing_flag?"HRtrue":"HRfalse");
-    if(hopping_result)
+    if(landing_flag)
     {
       ROS_INFO("initiating landing");
       landing_initiate();
