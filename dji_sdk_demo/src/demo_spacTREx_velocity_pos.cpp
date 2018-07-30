@@ -97,6 +97,7 @@ int main(int argc, char** argv)
     hopping_result = hop.finished;
     if(hopping_result)
     {
+      ROS_INFO("initiating landing");
       landing_initiate();
     }
     ros::spin();
@@ -146,7 +147,10 @@ bool Mission::hop_step(double xcr, double ycr, double zcr, double tc)
         ROS_INFO("In Bound");
         hop_fill_vel(hop.x_vel,hop.y_vel,hop.z_vel-1.62*tc,0);
         ROS_INFO("%lf, %lf, %lf", hop.x_vel,hop.y_vel,z_vel_c);
-        if(z_vel_c<=(-0.8)*hop.z_vel) return true;
+        if(z_vel_c<=(-0.8)*hop.z_vel) {
+          return true;
+          ROS_INFO("to landing")
+        }
         else return false;
 
   //   }
