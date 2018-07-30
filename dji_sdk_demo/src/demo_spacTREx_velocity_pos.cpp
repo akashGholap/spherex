@@ -95,11 +95,13 @@ int main(int argc, char** argv)
       hopping_result = false;
     }
     hopping_result = hop.finished;
+    ROS_INFO(hopping_result?"HRtrue":"HRfalse");
     if(hopping_result)
     {
       ROS_INFO("initiating landing");
       landing_initiate();
     }
+
     ros::spin();
 }
 // Helper Functions
