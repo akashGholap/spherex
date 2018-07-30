@@ -68,6 +68,7 @@ int main(int argc, char** argv)
   bool obtain_control_result = obtain_control();
   bool hopping_result = true;
   hop.finished = false;
+  bool landing_flag =false;
 
 
     double xi,yi,zi; //initial position
@@ -95,7 +96,8 @@ int main(int argc, char** argv)
       hopping_result = false;
     }
     hopping_result = hop.finished;
-    ROS_INFO(hopping_result?"HRtrue":"HRfalse");
+    landing_flag = hop.land;
+    ROS_INFO(landing_flag?"HRtrue":"HRfalse");
     if(hopping_result)
     {
       ROS_INFO("initiating landing");
@@ -413,8 +415,10 @@ void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // 
       {
         kfs.setup_done = false;
         hop.finished = true;
+        hop.land = true;
       }
-    else hop.finished = false;
+    else
+    {hop.finished = false;}
 
 
     kfs.t_pre = kfs.t_c;
