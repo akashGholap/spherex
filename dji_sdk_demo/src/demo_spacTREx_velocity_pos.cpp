@@ -149,10 +149,12 @@ bool Mission::hop_step(double xcr, double ycr, double zcr, double tc)
         ROS_INFO("%lf, %lf, %lf", hop.x_vel,hop.y_vel,z_vel_c);
         if(z_vel_c<=(-0.8)*hop.z_vel) {
           return true;
-          ROS_INFO("to landing")
+          ROS_INFO("to landing");
         }
-        else return false;
-
+        else
+        {
+          return false;
+        }
   //   }
   // else {return true;}
   // return false;
