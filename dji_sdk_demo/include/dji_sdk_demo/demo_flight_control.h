@@ -56,6 +56,8 @@ public:
   double xi,yi,zi; //initial position
   double xf,yf,zf; //final position
   double Rx,Ry,Rz;
+  double d,theta,phi;
+  double v;
   double optimum_time;
 
   //double Velx,Vely,Velz_c,Velz;
@@ -66,6 +68,7 @@ public:
   float target_yaw;
   double x_vel, y_vel, z_vel,z_vel_current;
   bool start_flag;
+  bool opt_flag;
 
   sensor_msgs::NavSatFix start_gps_location;
   geometry_msgs::Point start_local_position;
@@ -76,7 +79,7 @@ public:
   Mission() : state(0), inbound_counter(0), outbound_counter(0), break_counter(0),
               target_offset_x(0.0), target_offset_y(0.0), target_offset_z(0.0),
               finished(false),wait_counter(0),start_flag(false),x_vel(0.0),y_vel(0.0),z_vel(0.0),vel_counter(0),z_vel_current(0.0),
-              xi(0.0),yi(0.0),zi(0.0),xf(0.0),yf(0.0),zf(0.0),Rx(0),Ry(0),Rz(0),optimum_time(0.11),land(false)
+              xi(0.0),yi(0.0),zi(0.0),xf(0.0),yf(0.0),zf(0.0),Rx(0),Ry(0),Rz(0),optimum_time(0.11),land(false),d(0.0),theta(0.0),phi(0.0),v(0.0),opt_flag(0)
   {
   }
 
@@ -129,6 +132,11 @@ public:
    x_vel = 0;
    y_vel = 0;
    z_vel = 0;
+   d = xf_;
+   theta = yf_;
+   phi = zf_;
+   v = 0;
+   opt_flag = 0;
    wait_counter = 0;
    start_flag = true;
    land = false;

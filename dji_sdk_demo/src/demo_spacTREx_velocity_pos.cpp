@@ -85,7 +85,7 @@ int main(int argc, char** argv)
     if(hopping_result)
     {
       std::cout<<"Please Enter next Velocity vector";
-      std::cin>>xf>>yf>>zf>>xi>>yi>>zi;
+      std::cin>>xf>>yf>>zf>>xi>>yi>>zi;  //or put d,theta,phi,0,0,0
       hop.set_mission(xf,yf,zf,xi,yi,zi);
       bool opt_vel_set  =  set_optimum_velocity();
       if(opt_vel_set)
@@ -440,7 +440,7 @@ bool set_optimum_velocity()   //not yet prototyped
       ROS_INFO("Please Set Object hop from mission class first");
       return false;
     }
-    else
+    else if(hop.opt_flag)
     {
       ROS_INFO("Optimization starting");
       double t;
@@ -458,6 +458,17 @@ bool set_optimum_velocity()   //not yet prototyped
       ROS_INFO("optimization over %lf", hop.optimum_time);
       ROS_INFO("initial velocity %lf,%lf,%lf", hop.x_vel,hop.y_vel,hop.z_vel);
       return true;
+    }
+    else
+    {
+     double theta_rad = (hop.theta*3.14)/180;
+     double phi_rad = (hop.phi*3.14)/180;
+     ROS_INFO("Calculating the intial velocity vector");
+     hop.v = sqrt((hop.d*1.62)/sin(2*theta_rad));
+     hop.x_vel = hop.v*cos(theta_rad)*sin(phi_rad);
+     hop.y_vel = hop.v*cos(theta_rad)*cos(phi_rad);
+     hop.z_vel = hop.v*sin(theta_rad);
+     return true;
     }
 
 
