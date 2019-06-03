@@ -72,6 +72,7 @@ int main(int argc, char** argv)
 
 
     double xi,yi,zi; //initial position
+    double g;
     double xf,yf,zf; //final position
 
     float x=2 ,y=3,z=2,yaw=2;
@@ -85,8 +86,9 @@ int main(int argc, char** argv)
     if(hopping_result)
     {
       std::cout<<"Please Enter next Velocity vector";
-      std::cin>>xf>>yf>>zf>>xi>>yi>>zi;  //or put d,theta,phi,0,0,0
+      std::cin>>g>>xf>>yf>>zf>>xi>>yi>>zi;  //or put d,theta,phi,0,0,0
       hop.set_mission(xf,yf,zf,xi,yi,zi);
+      hop.grav = g;
       bool opt_vel_set  =  set_optimum_velocity();
       if(opt_vel_set)
       {
@@ -464,7 +466,7 @@ bool set_optimum_velocity()   //not yet prototyped
      double theta_rad = (hop.theta*3.14)/180;
      double phi_rad = (hop.phi*3.14)/180;
      ROS_INFO("Calculating the intial velocity vector");
-     hop.v = sqrt((hop.d*1.62)/sin(2*theta_rad));
+     hop.v = sqrt((hop.d*hop.grav)/sin(2*theta_rad));
      hop.x_vel = hop.v*cos(theta_rad)*sin(phi_rad);
      hop.y_vel = hop.v*cos(theta_rad)*cos(phi_rad);
      hop.z_vel = hop.v*sin(theta_rad);
