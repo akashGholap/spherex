@@ -41,6 +41,9 @@ int main(int argc, char** argv)
   sdk_ctrl_authority_service = nh.serviceClient<dji_sdk::SDKControlAuthority> ("dji_sdk/sdk_control_authority");
   drone_task_service         = nh.serviceClient<dji_sdk::DroneTaskControl>("dji_sdk/drone_task_control");
   drone_arm_service          = nh.serviceClient<dji_sdk::DroneArmControl>("dji_sdk/drone_arm_control");
+
+  obtain_control();
+
   double g, d, theta, phi, t_fac;
   bool hopped = true;
 
