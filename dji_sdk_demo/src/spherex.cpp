@@ -18,7 +18,7 @@ const float rad2deg = 180.0/C_PI;
 ros::ServiceClient sdk_ctrl_authority_service;
 ros::ServiceClient drone_task_service;
 ros::ServiceClient drone_arm_service;
-ros::ServiceClient query_version_service;
+//ros::ServiceClient query_version_service;
 
 
 ros::Publisher ctrlVelYawratePub;
@@ -42,7 +42,8 @@ int main(int argc, char** argv)
   drone_task_service         = nh.serviceClient<dji_sdk::DroneTaskControl>("dji_sdk/drone_task_control");
   drone_arm_service          = nh.serviceClient<dji_sdk::DroneArmControl>("dji_sdk/drone_arm_control");
 
-  obtain_control();
+  bool obtain_control_flag = obtain_control();
+  std::cout<<obtain_control_flag;
 
   double g, d, theta, phi, t_fac;
   bool hopped = true;
@@ -74,8 +75,9 @@ void Mission::hop_ex()
           {
             hop.acc_land = z_vel_c/hop.t_fac;
             hop.land_flag_init = false;
+            ROS_INFO("landing acceleration %f", hop.acc_land);
           }
-          double hop_land_vel = z_vel_c-hop.acc_land*hop.land_t;
+          double hop_land_vel = z_vel_c + hop.acc_land*hop.land_t;
           hop.land_t = hop.land_t + 0.01;
           if(hop_land_vel >= -0.25)
           {
@@ -116,7 +118,7 @@ void Mission::hop_fill_vel(double Vx, double Vy, double Vz, double yaw)
   controlVelYawRate.axes.push_back(Vz);
   controlVelYawRate.axes.push_back(yaw);
   ctrlVelYawratePub.publish(controlVelYawRate);
-  ROS_INFO("PUBLISHING vELOCITY");
+  ROS_INFO("PUBLISHING VELOCITY");
 }
 
 bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
