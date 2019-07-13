@@ -256,6 +256,17 @@ target_link_libraries(demo_time_sync
         )
 add_dependencies(demo_time_sync dji_sdk_generate_messages_cpp)
 
+add_executable(spherex
+        src/spherex.cpp)
+
+target_link_libraries(spherex
+        ${catkin_LIBRARIES}
+       ${DJIOSDK_LIBRARIES}
+       ${catkin_LIBRARIES}
+       ${OpenCV_LIBRARIES}
+       dlib
+        )
+add_dependencies(spherex dji_sdk_generate_messages_cpp)
 
 if (OPEN_CV_3_3_0_INSTALLED AND FOUND_OPENCV_VIZ AND FOUND_ADVANCED_SENSING)
     message(STATUS "Found OpenCV ${OpenCV_VERSION}, Viz3d, and advanced sensing module, depth percpetion demo will be compiled")
