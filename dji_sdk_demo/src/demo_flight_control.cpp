@@ -11,6 +11,14 @@
 
 #include "dji_sdk_demo/demo_flight_control.h"
 #include "dji_sdk/dji_sdk.h"
+#include <dji_sdk/DroneArmControl.h>
+#include <iostream>
+//#include <future>
+#include <cstdio>
+#include <dlib/optimization.h>
+//using namespace kf;
+//#include "dji_sdk_demo/spherex.h"
+#include "math.h"
 
 const float deg2rad = C_PI/180.0;
 const float rad2deg = 180.0/C_PI;
