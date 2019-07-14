@@ -22,6 +22,7 @@ ros::ServiceClient query_version_service;
 
 ros::Publisher ctrlPosYawPub;
 ros::Publisher ctrlBrakePub;
+ros::Publisher ctrlVelYawratePub;
 
 // global variables for subscribed topics
 uint8_t flight_status = 255;
@@ -31,6 +32,7 @@ geometry_msgs::Quaternion current_atti;
 geometry_msgs::Point current_local_pos;
 
 Mission square_mission;
+Mission hop;
 
 
 int main(int argc, char** argv)
@@ -47,12 +49,12 @@ int main(int argc, char** argv)
 
   // Publish the control signal
   ctrlPosYawPub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUposition_yaw", 10);
-  
+  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 100);
   // We could use dji_sdk/flight_control_setpoint_ENUvelocity_yawrate here, but
   // we use dji_sdk/flight_control_setpoint_generic to demonstrate how to set the flag
   // properly in function Mission::step()
   ctrlBrakePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_generic", 10);
-  
+
   // Basic services
   sdk_ctrl_authority_service = nh.serviceClient<dji_sdk::SDKControlAuthority> ("dji_sdk/sdk_control_authority");
   drone_task_service         = nh.serviceClient<dji_sdk::DroneTaskControl>("dji_sdk/drone_task_control");
@@ -61,7 +63,7 @@ int main(int argc, char** argv)
 
   bool obtain_control_result = obtain_control();
   bool takeoff_result;
-  if (!set_local_position()) // We need this for height
+  /*if (!set_local_position()) // We need this for height
   {
     ROS_ERROR("GPS health insufficient - No local frame reference for height. Exiting.");
     return 1;
@@ -88,10 +90,114 @@ int main(int argc, char** argv)
     ROS_INFO("##### Start route %d ....", square_mission.state);
   }
 
-  ros::spin();
+  ros::spin();*/
+  if(obtain_control_result)
+  {
+  ROS_INFO("Obtain Control Success");
+  }
+  else ROS_INFO("Obtain Control Failed");
+
+  double g, d, theta, phi, t_fac;
+  bool hopped = true;
+
+  while(ros::ok())
+  {
+    if(hopped)
+    {
+      std::cout<<"Please Enter d, theta, phi, and landing factor; g is = 1.62";
+      std::cin>>d>>theta>>phi>>t_fac;
+      hop.set_mission(d,theta,phi,t_fac);
+      hopped = false;
+    }
+    hopped  =  hop.finished;
+    ros::spin();
+  }
+
   return 0;
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////
+void Mission::hop_ex()
+{
+        double tc = hop.t;
+        double z_vel_c = hop.z_vel-1.62*tc;
 
+
+        if(z_vel_c<=(-0.8)*hop.z_vel)
+        {
+          if(hop.land_flag_init)
+          {
+            hop.acc_land = z_vel_c/hop.t_fac;
+            hop.land_flag_init = false;
+            ROS_INFO("landing acceleration %f", hop.acc_land);
+          }
+          double hop_land_vel = z_vel_c - hop.acc_land*hop.land_t;
+          hop.land_t = hop.land_t + 0.01;
+          if(hop_land_vel >= -0.25)
+          {
+            hop.touchdown_counter++;
+            if(hop.touchdown_counter >= 25)
+            {
+              hop_fill_vel(0,0,0,0);
+              hop.finished = true;
+            }
+            else
+            {
+              hop_fill_vel(0,0,-0.20,0);
+               hop.finished = false;    //return true;
+            }
+          }
+          else
+          {
+            hop_fill_vel(0,0, hop_land_vel,0);
+          }
+        }
+        else
+        {
+          hop_fill_vel(hop.x_vel,hop.y_vel,z_vel_c,0);
+          ROS_INFO("%lf, %lf, %lf", hop.x_vel,hop.y_vel,z_vel_c);
+          hop.land_flag_init = true;
+          hop.land_t = 0;
+          hop.finished = false;
+        }
+}
+void Mission::hop_fill_vel(double Vx, double Vy, double Vz, double yaw)
+{
+
+  sensor_msgs::Joy controlVelYawRate;
+  controlVelYawRate.axes.push_back(Vx);
+  controlVelYawRate.axes.push_back(Vy);
+  controlVelYawRate.axes.push_back(Vz);
+  controlVelYawRate.axes.push_back(yaw);
+  ctrlVelYawratePub.publish(controlVelYawRate);
+  ROS_INFO("PUBLISHING VELOCITY");
+}
+bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
+{
+    grav = 1.62;
+    d = d_;
+    theta = theta_;
+    phi = phi_;
+    t = 0.00;
+    t_fac = t_fac_;
+    acc_land = 1.62;
+    finished =false;
+    touchdown_counter = 0;
+    double theta_rad = (theta*3.14)/180;
+    double phi_rad = (phi*3.14)/180;
+    ROS_INFO("Calculating the intial velocity vector");
+    v = sqrt((d*grav)/sin(2*theta_rad));
+    x_vel = v*cos(theta_rad)*sin(phi_rad);
+    y_vel = v*cos(theta_rad)*cos(phi_rad);
+    z_vel = v*sin(theta_rad);
+    return true;
+}
+void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // prototyped in the flight control header
+{
+      hop.t = hop.t + hop.dt ;
+      hop.hop_ex();
+      //ROS_INFO(to_stop? "true":"FALSE");
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Helper Functions
 
 /*! Very simple calculation of local NED offset between two pairs of GPS
