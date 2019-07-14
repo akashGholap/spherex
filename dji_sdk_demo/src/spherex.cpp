@@ -137,6 +137,7 @@ bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
     acc_land = 1.62;
     finished =false;
     touchdown_counter = 0;
+    hold_counter = 0;
     double theta_rad = (theta*3.14)/180;
     double phi_rad = (phi*3.14)/180;
     ROS_INFO("Calculating the intial velocity vector");
@@ -150,9 +151,13 @@ bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
 
 void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // prototyped in the flight control header
 {
+      hop.hold_counter++;
+      if(hop.hold_counter>=200)
+      {
       hop.t = hop.t + hop.dt ;
       hop.hop_ex();
-      //ROS_INFO(to_stop? "true":"FALSE");
+      }
+      else ROS_INFO("I am getting ready, Please Wait");
 }
 
 bool obtain_control()
