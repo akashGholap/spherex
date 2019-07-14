@@ -18,9 +18,10 @@ const float rad2deg = 180.0/C_PI;
 ros::ServiceClient sdk_ctrl_authority_service;
 ros::ServiceClient drone_task_service;
 ros::ServiceClient drone_arm_service;
+ros::ServiceClient query_version_service;
 //ros::ServiceClient query_version_service;
 
-
+uint8_t flight_status = 255;
 ros::Publisher ctrlVelYawratePub;
 ros::Publisher hopStatus;
 
@@ -32,7 +33,7 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
 
   ros::Subscriber getVelocity = nh.subscribe("dji_sdk/velocity" ,100, &getVelocity_callback);
-
+  ros::Subscriber flightStatusSub = nh.subscribe("dji_sdk/flight_status", 10, &flight_status_callback);
   ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 100);
   //note
   //make a hop status advertiser
@@ -41,9 +42,14 @@ int main(int argc, char** argv)
   sdk_ctrl_authority_service = nh.serviceClient<dji_sdk::SDKControlAuthority> ("dji_sdk/sdk_control_authority");
   drone_task_service         = nh.serviceClient<dji_sdk::DroneTaskControl>("dji_sdk/drone_task_control");
   drone_arm_service          = nh.serviceClient<dji_sdk::DroneArmControl>("dji_sdk/drone_arm_control");
+  query_version_service      = nh.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
 
   bool obtain_control_flag = obtain_control();
-  std::cout<<obtain_control_flag;
+  if(obtain_control_flag)
+  {
+  ROS_INFO("Obtain Control Success");
+  }
+  else ROS_INFO("Obtain Control Failed");
 
   double g, d, theta, phi, t_fac;
   bool hopped = true;
@@ -58,7 +64,7 @@ int main(int argc, char** argv)
       hopped = false;
     }
     hopped  =  hop.finished;
-    ros::spinOnce();
+    ros::spin();
   }
 
 }
@@ -77,14 +83,13 @@ void Mission::hop_ex()
             hop.land_flag_init = false;
             ROS_INFO("landing acceleration %f", hop.acc_land);
           }
-          double hop_land_vel = z_vel_c + hop.acc_land*hop.land_t;
+          double hop_land_vel = z_vel_c - hop.acc_land*hop.land_t;
           hop.land_t = hop.land_t + 0.01;
           if(hop_land_vel >= -0.25)
           {
             hop.touchdown_counter++;
             if(hop.touchdown_counter >= 25)
             {
-
               hop_fill_vel(0,0,0,0);
               hop.finished = true;
             }
@@ -163,4 +168,20 @@ bool obtain_control()
   }
 
   return true;
+}
+bool is_M100()
+{
+  dji_sdk::QueryDroneVersion query;
+  query_version_service.call(query);
+
+  if(query.response.version == DJISDK::DroneFirmwareVersion::M100_31)
+  {
+    return true;
+  }
+
+  return false;
+}
+void flight_status_callback(const std_msgs::UInt8::ConstPtr& msg)
+{
+  flight_status = msg->data;
 }
