@@ -53,9 +53,9 @@ public:
 
   double t,dt,land_t;
   double grav,d,theta,phi;
-  double v, acc_land;
+  double v, acc_land, init_vel_land;
   double t_fac;
-  bool land_flag_init;
+  bool land_flag;
 
 
   float target_offset_x;
@@ -68,7 +68,7 @@ public:
 
   bool finished;
 
-  Mission() : state(0), inbound_counter(0), outbound_counter(0), break_counter(0),land_flag_init(true),land_t(0),touchdown_counter(0),acc_land(0),t_fac(3),
+  Mission() : state(0), inbound_counter(0), outbound_counter(0), break_counter(0),land_flag(false),land_t(0),touchdown_counter(0),acc_land(0),t_fac(3),init_vel_land(0.0),
               target_offset_x(0.0), target_offset_y(0.0), target_offset_z(0.0),x_vel(0.0),y_vel(0.0),z_vel(0.0),d(0.0),theta(0.0),phi(0.0),v(0.0),z_vel_current(0.0),grav(0.0),dt(0.01),t(0.00),hold_counter(0),
               finished(false)
   {

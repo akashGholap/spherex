@@ -1,6 +1,7 @@
 #include "dji_sdk_demo/demo_flight_control.h"
 #include "dji_sdk/dji_sdk.h"
 #include <dji_sdk/DroneArmControl.h>
+#include "std_msgs/Bool.h"
 //#include <Eigen>
 //#include <dji_sdk_demo/spacetrex_kalman_filter.h>
 #include <iostream>
@@ -23,7 +24,8 @@ ros::ServiceClient query_version_service;
 
 uint8_t flight_status = 255;
 ros::Publisher ctrlVelYawratePub;
-ros::Publisher hopStatus;
+ros::Publisher hopStatusPub;
+
 
 Mission hop;
 
@@ -35,6 +37,7 @@ int main(int argc, char** argv)
   ros::Subscriber getVelocity = nh.subscribe("dji_sdk/velocity" ,100, &getVelocity_callback);
   ros::Subscriber flightStatusSub = nh.subscribe("dji_sdk/flight_status", 10, &flight_status_callback);
   ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 100);
+  hopStatusPub = nh.advertise<std_msgs::Bool>("dji_spherex/hopStatus",100);
   //note
   //make a hop status advertiser
 
@@ -73,18 +76,19 @@ void Mission::hop_ex()
 {
         double tc = hop.t;
         double z_vel_c = hop.z_vel-1.62*tc;
-
-
-        if(z_vel_c<=(-0.8)*hop.z_vel)
+        if(z_vel_c<=(-0.8)*hop.z_vel && (!hop.land_flag))
         {
-          if(hop.land_flag_init)
-          {
-            hop.acc_land = z_vel_c/hop.t_fac;
-            hop.land_flag_init = false;
-            ROS_INFO("landing acceleration %f", hop.acc_land);
-          }
-          double hop_land_vel = z_vel_c - hop.acc_land*hop.land_t;
+          hop.land_flag = true;
+          hop.acc_land = z_vel_c/hop.t_fac;
+          hop.init_vel_land = z_vel_c;
+          //hop.land_flag = false;
+          ROS_INFO("landing acceleration %f", hop.acc_land);
+        }
+
+        if(hop.land_flag)
+        {
           hop.land_t = hop.land_t + 0.01;
+          double hop_land_vel = hop.init_vel_land - hop.acc_land*hop.land_t;
           if(hop_land_vel >= -0.25)
           {
             hop.touchdown_counter++;
@@ -108,10 +112,12 @@ void Mission::hop_ex()
         {
           hop_fill_vel(hop.x_vel,hop.y_vel,z_vel_c,0);
           ROS_INFO("%lf, %lf, %lf", hop.x_vel,hop.y_vel,z_vel_c);
-          hop.land_flag_init = true;
           hop.land_t = 0;
           hop.finished = false;
         }
+        std_msgs::Bool hopStatus;
+        hopStatus.data = hop.finished;
+        hopStatusPub.publish(hopStatus);
 }
 
 void Mission::hop_fill_vel(double Vx, double Vy, double Vz, double yaw)
@@ -138,6 +144,7 @@ bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
     finished =false;
     touchdown_counter = 0;
     hold_counter = 0;
+    land_flag = false;
     double theta_rad = (theta*3.14)/180;
     double phi_rad = (phi*3.14)/180;
     ROS_INFO("Calculating the intial velocity vector");
