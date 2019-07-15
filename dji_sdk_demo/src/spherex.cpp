@@ -96,16 +96,19 @@ void Mission::hop_ex()
             {
               hop_fill_vel(0,0,0,0);
               hop.finished = true;
+              ROS_INFO("SphereX Landed");
             }
             else
             {
               hop_fill_vel(0,0,-0.20,0);
-               hop.finished = false;    //return true;
+               hop.finished = false;
+               ROS_INFO("In touchdown");   //return true;
             }
           }
           else
           {
             hop_fill_vel(0,0, hop_land_vel,0);
+            ROS_INFO("Pre touchdown");
           }
         }
         else
