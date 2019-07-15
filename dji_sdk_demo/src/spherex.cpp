@@ -67,7 +67,7 @@ int main(int argc, char** argv)
       hopped = false;
     }
     hopped  =  hop.finished;
-    ros::spin();
+    ros::spinOnce();
   }
 
 }
@@ -97,6 +97,7 @@ void Mission::hop_ex()
               hop_fill_vel(0,0,0,0);
               hop.finished = true;
               ROS_INFO("SphereX Landed");
+              disarm_motors();
             }
             else
             {
@@ -148,6 +149,7 @@ bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
     touchdown_counter = 0;
     hold_counter = 0;
     land_flag = false;
+    arm = false;
     double theta_rad = (theta*3.14)/180;
     double phi_rad = (phi*3.14)/180;
     ROS_INFO("Calculating the intial velocity vector");
@@ -162,7 +164,23 @@ bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
 void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // prototyped in the flight control header
 {
       hop.hold_counter++;
-      if(hop.hold_counter>=200)
+      if(hop.hold_counter==100)
+      {
+        hop.arm = arm_motors();
+      }
+      if(!hop.arm && (hop.hold_counter==200))
+      {
+        hop.arm = arm_motors();
+        if(!hop.arm)
+        {
+          ROS_INFO("SphereX is not arming");
+        }
+      }
+      else if(hop.arm && (hop.hold_counter==200))
+      {
+        ROS_INFO("SphereX Arming Successful");
+      }
+      if(hop.hold_counter>=400)
       {
       hop.t = hop.t + hop.dt ;
       hop.hop_ex();
@@ -182,6 +200,31 @@ bool obtain_control()
     return false;
   }
 
+  return true;
+}
+bool arm_motors()
+{
+  dji_sdk::DroneArmControl droneArmControl;
+  droneArmControl.request.arm = 1;
+  drone_arm_service.call(droneArmControl);
+  if(!droneArmControl.response.result)
+  {
+    ROS_ERROR("Arming Failed");
+      return false;
+  }
+  return true;
+}
+
+bool disarm_motors()
+{
+  dji_sdk::DroneArmControl droneArmControl;
+  droneArmControl.request.arm = 0;
+  drone_arm_service.call(droneArmControl);
+  if(!droneArmControl.response.result)
+  {
+    ROS_ERROR("Disarming Failed");
+      return false;
+  }
   return true;
 }
 bool is_M100()
