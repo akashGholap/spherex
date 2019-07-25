@@ -10,7 +10,7 @@ PointCloud::Ptr cloud_inObstacle (new PointCloud),cloud_outPlane (new PointCloud
 std::ofstream pcdfile_write;
 
 ros::ServiceServer set_next_hop_server;
-
+ros::Publisher icpppStatusPub;
 int counter=0;
 SphereX hop;
 
@@ -22,6 +22,7 @@ int main (int argc, char** argv)
   ros::Subscriber pcdFileListSub = nh.subscribe("/pcd_file_string", 10, &storefilename_callback);
   ros::Subscriber hopStatusSub = nh.subscribe("spherex/hopStatus", 100, &hop_status_callback);
   set_next_hop_server      = nh.advertiseService("dji_sdk/set_next_hop_service",  &set_next_hop_callback);
+  icpppStatusPub = nh.advertise<std_msgs::Bool>("spherex/icp_pp_status", 100);
 
   pcdfile_write.open ("pcd_file_list.txt");
 
@@ -72,11 +73,10 @@ int main (int argc, char** argv)
            ss << "1.pcd";
            pcl::io::savePCDFile (ss.str (), *global_cloud, true);
            counter = 0;
-					 hop.icp_status = true;
+					 hop.icp_status = false;
 
        }
-			    bool ifcompute = compute_next_hop();
-
+			 bool ifcompute = compute_next_hop();
        ros::spinOnce();
    }
 
@@ -86,7 +86,7 @@ int main (int argc, char** argv)
 
 void storefilename_callback(const std_msgs::String& pcd_file_name)
 {
-  if(!hop.hop_status && !hop.icp_status)   //if hop_status is true it means hop is completed
+  if(!hop.hop_status && hop.icp_status)   //if hop_status is true it means hop is completed, icp_status true is ICP completed
   {
     if(counter % 2 == 0)
     {
@@ -109,6 +109,9 @@ void storefilename_callback(const std_msgs::String& pcd_file_name)
 void hop_status_callback(const std_msgs::Bool& status)
 {
   hop.hop_status = status.data;
+  std_msgs::Bool icp_status;
+  icp_status.data = hop.icp_status;
+  icpppStatusPub.publish(icp_status);
 }
 
 bool set_next_hop_callback(dji_sdk::setNextHop::Request &req, dji_sdk::setNextHop::Response &res)
@@ -196,7 +199,7 @@ void loadData_from_txt (std::vector<PCD, Eigen::aligned_allocator<PCD> > &models
 
 bool compute_next_hop()
 {
-  if(hop.hop_status && hop.icp_status)
+  if(hop.hop_status && !hop.icp_status)
   {
 
       double x_ = GlobalTransform(0, 3);
@@ -216,7 +219,7 @@ bool compute_next_hop()
       {
 
       cloud->points[i].x = (b-a)*(rand()/(RAND_MAX + 1.0f))+ a +x_;
-      cloud->points[i].y = (d-c)*(rand()/(RAND_MAX + 1.0f))+ c +y_+;
+      cloud->points[i].y = (d-c)*(rand()/(RAND_MAX + 1.0f))+ c +y_;
       cloud->points[i].z = -0.6;
 
       }

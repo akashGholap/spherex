@@ -52,6 +52,7 @@ int main(int argc, char** argv)
   query_version_service      = nh.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
   set_next_hop_service       = nh.serviceClient<dji_sdk::setNextHop>("spherex/set_next_hop_service");
 
+  bool nextHopSet = true;
 
   bool obtain_control_flag = obtain_control();
   if(obtain_control_flag)
@@ -65,7 +66,7 @@ int main(int argc, char** argv)
 
   while(ros::ok())
   {
-    if(hopped)
+    if(hopped&&nextHopSet)
     {
       std::cout<<"Please Enter d, theta, phi, and landing factor; g is = 1.62";
       std::cin>>d>>theta>>phi>>t_fac;
@@ -76,6 +77,7 @@ int main(int argc, char** argv)
     hopped  =  hop.finished;
     if(hop.icp_pp == true)
     {
+      nextHopSet = set_next_hop();
 
     }
     ros::spinOnce();
@@ -219,6 +221,7 @@ bool set_next_hop()
     hop.nd = nhop.response.d;
     hop.ntheta = nhop.response.theta;
     hop.nphi = nhop.response.phi;
+    return true;
   }
 
 }

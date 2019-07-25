@@ -130,4 +130,6 @@ bool set_local_position();
 bool arm_motors(void);
 bool disarm_motors(void);
 
+bool set_next_hop();
+
 #endif // DEMO_FLIGHT_CONTROL_H
