@@ -33,6 +33,17 @@ if(darknet_ros_FOUND)
     add_definitions(-DUSE_DARKNET_ROS)
 endif()
 
+if(NOT "${PCL_LIBRARIES}" STREQUAL "")
+  # For debian: https://github.com/ros-perception/perception_pcl/issues/139
+  list(REMOVE_ITEM PCL_LIBRARIES
+    "vtkGUISupportQt"
+    "vtkGUISupportQtOpenGL"
+    "vtkGUISupportQtSQL"
+    "vtkGUISupportQtWebkit"
+    "vtkViewsQt"
+    "vtkRenderingQt")
+endif()
+
 # Try to see if user has OpenCV installed
 # If there's version 3.3.0+, depth perception samples will be compiled
 # If it's not version 3.3.0+, the sample will not be compiled

@@ -50,6 +50,9 @@ struct Candidate
 {
 int begin;
 int end;
+float phi;
+
+
 };
 struct Plane
 {
@@ -83,8 +86,14 @@ class SphereX
   float d;
   float theta;
   float phi;
-
-	SphereX() : hop_status(false),icp_status(false),d(0.0),theta(0.0),phi(0.0)
+  float od;
+  float otheta;
+  float ophi;   //old
+  float ox,oy,oz; //old ones
+  float x, y, z; //current
+  float nxp, nyp, nzp; //predicted
+  float preVecPhi;
+	SphereX() : hop_status(false),icp_status(false),d(0.0),theta(0.0),phi(0.0),od(0.0),otheta(0.0),ophi(0.0),ox(2.0),oy(0.5),oz(0.0),x(0.0),y(0.0),z(0.0),nxp(0.0),nyp(0.0),nzp(0.0),preVecPhi(0.0)
   {}
 
 };

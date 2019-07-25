@@ -236,6 +236,16 @@ bool obtain_control()
 
   return true;
 }
+
+geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
+{
+  geometry_msgs::Vector3 ans;
+
+  tf::Matrix3x3 R_FLU2ENU(tf::Quaternion(quat.x, quat.y, quat.z, quat.w));
+  R_FLU2ENU.getRPY(ans.x, ans.y, ans.z);
+  return ans;
+}
+
 bool arm_motors()
 {
   dji_sdk::DroneArmControl droneArmControl;

@@ -86,24 +86,22 @@ int main (int argc, char** argv)
 
 void storefilename_callback(const std_msgs::String& pcd_file_name)
 {
-  if(!hop.hop_status && !hop.icp_status)
+  if(!hop.hop_status && !hop.icp_status)   //if hop_status is true it means hop is completed
   {
-    if(counter % 2 == 0){
-  	std::stringstream ss;
-  	ss << pcd_file_name.data << ".pcd";
-    ROS_INFO("%s",ss.str().c_str());
-
-  	pcdfile_write << ss.str()<<endl;
-
+    if(counter % 2 == 0)
+    {
+    	std::stringstream ss;
+    	ss << pcd_file_name.data << ".pcd";
+      ROS_INFO("%s",ss.str().c_str());
+    	pcdfile_write << ss.str()<<endl;
     }
     counter++;
-
-    }
-    if(counter >= 6)
-    {
+  }
+  if(counter >= 6)
+  {
       hop.hop_status=true;
-    }
-    else hop.hop_status = false;
+  }
+  else hop.hop_status = false;
 }
 
 
@@ -217,8 +215,8 @@ bool compute_next_hop()
       for (size_t i = 0; i < cloud->points.size (); ++i)
       {
 
-      cloud->points[i].x = (b-a)*(rand()/(RAND_MAX + 1.0f))+a;
-      cloud->points[i].y = (d-c)*(rand()/(RAND_MAX + 1.0f))+c;
+      cloud->points[i].x = (b-a)*(rand()/(RAND_MAX + 1.0f))+ a +x_;
+      cloud->points[i].y = (d-c)*(rand()/(RAND_MAX + 1.0f))+ c +y_+;
       cloud->points[i].z = -0.6;
 
       }
@@ -233,6 +231,9 @@ bool compute_next_hop()
       searchPoint.x = x_;
       searchPoint.y = y_;
       searchPoint.z = z_;
+      hop.x = x_;
+      hop.y = y_;
+      hop.z = z_;
       pcl::PointIndices::Ptr inliers (new pcl::PointIndices ());
       kdtree.radiusSearch(searchPoint, r , k_indices, k_radius);
       inliers->indices = k_indices;
@@ -405,6 +406,8 @@ bool compute_next_hop()
 
 
 
+
+
       }
       cout<<"total_number of indices in plane 0" << plane_inliers_pointer[0]->indices.size()<<endl;
       for(int i = 0; i < numberOfSectors; i++)
@@ -471,20 +474,48 @@ bool compute_next_hop()
         {
             candidate.end = i-1;
             flag_start = false;
+            candidate.phi = (candidate.begin*anglePerSector + candidate.end*anglePerSector)/2;
             Candidates.push_back(candidate);
             Candidate candidate;
         }
       }
 
-      for(int i= 0; i < Candidates.size(); i++)
+      for(int i= 0 ; i < Candidates.size(); i++)
       {
         cout<<"Candidate Begin for "<<i<<" is "<<Candidates[i].begin<<endl;
         cout<<"Candidate End for "<<i<<" is "<<Candidates[i].end<<endl;
+        cout<<"Candidate End for "<<i<<" is "<<Candidates[i].phi<<endl;
 
       }
+      cout<<hop.x<<", "<<hop.y<<endl;
+      float preVecPhi = atan2((hop.y-hop.oy),(hop.x-hop.ox))*180/PI;
+      if(preVecPhi>=0) hop.preVecPhi = preVecPhi;
+      else hop.preVecPhi = preVecPhi + 360;
+      float temp_phi;
+      cout<<"Candidates size"<<Candidates.size()<<endl;
+      for(int i = 0; i < Candidates.size(); i++)
+      {
+        if(i == 0)
+        {
+          temp_phi = abs(Candidates[i].phi - hop.preVecPhi);
+          hop.phi = Candidates[i].phi - hop.preVecPhi;
+          cout<<"hop phi is"<<hop.phi<<endl;
+        }
+        else{
+          if(temp_phi > abs(Candidates[i].phi - hop.preVecPhi))
+          {
+            hop.phi = Candidates[i].phi - hop.preVecPhi;
+
+          }
+        }
 
 
+      }
+      hop.d = 1.5;
+      hop.theta = 60;
+      cout<<"hop phi is"<<hop.phi<<endl;
       hop.icp_status = true;
+
 
 
   }
