@@ -29,13 +29,13 @@
 #include <pcl/sample_consensus/model_types.h>
 #include <pcl/segmentation/sac_segmentation.h>
 
-using pcl::visualization::PointCloudColorHandlerGenericField;
-using pcl::visualization::PointCloudColorHandlerCustom;
+
 //convenient typedefs
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<PointT> PointCloud;
 typedef pcl::PointNormal PointNormalT;
 typedef pcl::PointCloud<PointNormalT> PointCloudWithNormals;
+using namespace std;
 
 struct Sector
 {

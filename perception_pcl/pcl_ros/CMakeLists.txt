@@ -183,15 +183,15 @@ add_dependencies(pcl_ros_segmentation ${PROJECT_NAME}_gencfg)
 class_loader_hide_library_symbols(pcl_ros_segmentation)
 
 ## Declare the pcl_ros_surface library
-add_library (pcl_ros_surface
-  src/pcl_ros/surface/surface.cpp
-  # Compilation is much faster if we include all the following CPP files in surface.cpp
-  src/pcl_ros/surface/convex_hull.cpp
-  src/pcl_ros/surface/moving_least_squares.cpp
-)
-target_link_libraries(pcl_ros_surface ${Boost_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-add_dependencies(pcl_ros_surface ${PROJECT_NAME}_gencfg)
-class_loader_hide_library_symbols(pcl_ros_surface)
+#add_library (pcl_ros_surface
+#  src/pcl_ros/surface/surface.cpp
+#  # Compilation is much faster if we include all the following CPP files in surface.cpp
+#  src/pcl_ros/surface/convex_hull.cpp
+#  src/pcl_ros/surface/moving_least_squares.cpp
+#)
+#target_link_libraries(pcl_ros_surface ${Boost_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#add_dependencies(pcl_ros_surface ${PROJECT_NAME}_gencfg)
+#class_loader_hide_library_symbols(pcl_ros_surface)
 
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
@@ -237,7 +237,7 @@ if(CATKIN_ENABLE_TESTING)
   add_rostest(samples/pcl_ros/filters/sample_statistical_outlier_removal.launch ARGS gui:=false)
   add_rostest(samples/pcl_ros/filters/sample_voxel_grid.launch ARGS gui:=false)
   add_rostest(samples/pcl_ros/segmentation/sample_extract_clusters.launch ARGS gui:=false)
-  add_rostest(samples/pcl_ros/surface/sample_convex_hull.launch ARGS gui:=false)
+  #add_rostest(samples/pcl_ros/surface/sample_convex_hull.launch ARGS gui:=false)
 
 endif(CATKIN_ENABLE_TESTING)
 
@@ -251,7 +251,7 @@ install(
     pcl_ros_io
     pcl_ros_features
     pcl_ros_filters
-    pcl_ros_surface
+    #pcl_ros_surface
     pcl_ros_segmentation
     pcd_to_pointcloud
     pointcloud_to_pcd
