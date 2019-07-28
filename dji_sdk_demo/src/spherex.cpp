@@ -1,4 +1,4 @@
-#include "dji_sdk_demo/demo_flight_control.h"
+//#include "dji_sdk_demo/demo_flight_control.h"
 #include <SphereX/spherex_flight_control.h>
 #include "dji_sdk/dji_sdk.h"
 #include <dji_sdk/DroneArmControl.h>
@@ -160,6 +160,8 @@ bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
     acc_land = 1.62;
     finished =false;
     touchdown_counter = 0;
+    wait_counter = 0;
+    up_counter = 0;
     hold_counter = 0;
     land_flag = false;
     arm = false;
@@ -195,10 +197,26 @@ void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // 
       }
       if(hop.hold_counter>=400)
       {
-      hop.t = hop.t + hop.dt ;
-      hop.hop_ex();
+        if(hop.wait_counter<=100)
+        {
+          hop.hop_fill_vel(0,0,0,0);
+          hop.wait_counter++;
+          hop.finished = false;
+        }
+        else if(hop.wait_counter>100&&hop.up_counter<=50)
+        {
+          hop.hop_fill_vel(0,0,3,0);
+          hop.up_counter++;
+          hop.finished = false;
+        }
+        else
+        {
+          hop.t = hop.t + hop.dt ;
+          hop.hop_ex();
+        }
+
       }
-      else ROS_INFO("I am getting ready, Please Wait");
+
 }
 
 void icp_pp_status_callback(const std_msgs::Bool& status)

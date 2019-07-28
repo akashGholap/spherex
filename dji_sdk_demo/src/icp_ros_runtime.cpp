@@ -88,7 +88,7 @@ void storefilename_callback(const std_msgs::String& pcd_file_name)
 {
   if(!hop.hop_status && hop.icp_status)   //if hop_status is true it means hop is completed, icp_status true is ICP completed
   {
-    if(counter % 2 == 0)
+    if(counter % 1 == 0)
     {
     	std::stringstream ss;
     	ss << pcd_file_name.data << ".pcd";
@@ -97,8 +97,9 @@ void storefilename_callback(const std_msgs::String& pcd_file_name)
     }
     counter++;
   }
-  if(counter >= 6)
+  if(counter >= 500)
   {
+      cout<<" Value of number of pcd"<<counter<<endl;
       hop.hop_status=true;
   }
   else hop.hop_status = false;
@@ -535,7 +536,7 @@ void pairAlign (const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt
   pcl::VoxelGrid<PointT> grid;
   if (downsample)
   {
-    grid.setLeafSize (0.05, 0.05, 0.05);
+    grid.setLeafSize (0.1, 0.1, 0.1);
     grid.setInputCloud (cloud_src);
     grid.filter (*src);
 
@@ -577,7 +578,8 @@ void pairAlign (const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt
   reg.setTransformationEpsilon (1e-6);
   // Set the maximum distance between two correspondences (src<->tgt) to 10cm
   // Note: adjust this based on the size of your datasets
-  reg.setMaxCorrespondenceDistance (0.1);
+  reg.setMaxCorrespondenceDistance (0.25);
+  reg.setEuclideanFitnessEpsilon(0.01);
   // Set the point representation
   reg.setPointRepresentation (boost::make_shared<const MyPointRepresentation> (point_representation));
 
@@ -587,8 +589,8 @@ void pairAlign (const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt
   // Run the same optimization in a loop and visualize the results
   Eigen::Matrix4f Ti = Eigen::Matrix4f::Identity (), prev, targetToSource;
   PointCloudWithNormals::Ptr reg_result = points_with_normals_src;
-  reg.setMaximumIterations (10);
-  for (int i = 0; i < 10; ++i)
+  reg.setMaximumIterations (250);
+  for (int i = 0; i < 1; ++i)
   {
     PCL_INFO ("Iteration Nr. %d.\n", i);
 

@@ -187,7 +187,7 @@ int
   main (int argc, char** argv)
 {
   ros::init (argc, argv, "pointcloud_to_pcd", ros::init_options::AnonymousName);
-
+  ROS_INFO("we are in main");
   PointCloudToPCD b;
   ros::spin ();
 
