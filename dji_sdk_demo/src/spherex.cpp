@@ -36,8 +36,10 @@ int main(int argc, char** argv)
 
   ros::Subscriber getVelocity = nh.subscribe("dji_sdk/velocity" ,100, &getVelocity_callback);
   ros::Subscriber flightStatusSub = nh.subscribe("dji_sdk/flight_status", 10, &flight_status_callback);
-  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 100);
-  hopStatusPub = nh.advertise<std_msgs::Bool>("dji_spherex/hopStatus",100);
+  ros::Subscriber lidarProcessStatusSub = nh.subscribe("spherex/lidar_process_status", 100, &lidar_process_status_callback);ls
+
+  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 50);
+  hopStatusPub = nh.advertise<std_msgs::Bool>("spherex/hopStatus",100);
   //note
   //make a hop status advertiser
 
@@ -67,6 +69,7 @@ int main(int argc, char** argv)
       hopped = false;
     }
     hopped  =  hop.finished;
+    hop_status_pub();
     ros::spinOnce();
   }
 
@@ -163,29 +166,44 @@ bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
 
 void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // prototyped in the flight control header
 {
-      hop.hold_counter++;
-      if(hop.hold_counter==100)
-      {
-        hop.arm = arm_motors();
-      }
-      if(!hop.arm && (hop.hold_counter==200))
-      {
-        hop.arm = arm_motors();
-        if(!hop.arm)
-        {
-          ROS_INFO("SphereX is not arming");
-        }
-      }
-      else if(hop.arm && (hop.hold_counter==200))
-      {
-        ROS_INFO("SphereX Arming Successful");
-      }
-      if(hop.hold_counter>=400)
-      {
+  hop.hold_counter++;
+  if(hop.hold_counter==100)
+  {
+    hop.arm = arm_motors();
+  }
+  if(!hop.arm && (hop.hold_counter==200))
+  {
+    hop.arm = arm_motors();
+    if(!hop.arm)
+    {
+      ROS_INFO("SphereX is not arming");
+    }
+  }
+  else if(hop.arm && (hop.hold_counter==200))
+  {
+    ROS_INFO("SphereX Arming Successful");
+  }
+  if(hop.hold_counter>=400)
+  {
+    if(hop.wait_counter<=100)
+    {
+      hop.hop_fill_vel(0,0,0,0);
+      hop.wait_counter++;
+      hop.finished = false;
+    }
+    else if(hop.wait_counter>100&&hop.up_counter<=50)
+    {
+      hop.hop_fill_vel(0,0,3,0);
+      hop.up_counter++;
+      hop.finished = false;
+    }
+    else
+    {
       hop.t = hop.t + hop.dt ;
       hop.hop_ex();
-      }
-      else ROS_INFO("I am getting ready, Please Wait");
+    }
+
+  }
 }
 
 bool obtain_control()
@@ -201,6 +219,12 @@ bool obtain_control()
   }
 
   return true;
+}
+void hop_status_pub()
+{
+  std_msgs::Bool hopStatus;
+  hopStatus.data = hop.finished;
+  hopStatusPub.publish(hopStatus);
 }
 bool arm_motors()
 {
