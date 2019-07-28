@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 
   ros::Subscriber getVelocity = nh.subscribe("dji_sdk/velocity" ,100, &getVelocity_callback);
   ros::Subscriber flightStatusSub = nh.subscribe("dji_sdk/flight_status", 10, &flight_status_callback);
-  ros::Subscriber lidarProcessStatusSub = nh.subscribe("spherex/lidar_process_status", 100, &lidar_process_status_callback);ls
+  //ros::Subscriber lidarProcessStatusSub = nh.subscribe("spherex/lidar_process_status", 100, &lidar_process_status_callback);ls
 
   ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 50);
   hopStatusPub = nh.advertise<std_msgs::Bool>("spherex/hopStatus",100);
@@ -151,6 +151,8 @@ bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
     finished =false;
     touchdown_counter = 0;
     hold_counter = 0;
+    wait_counter = 0;
+    up_counter = 0;
     land_flag = false;
     arm = false;
     double theta_rad = (theta*3.14)/180;
