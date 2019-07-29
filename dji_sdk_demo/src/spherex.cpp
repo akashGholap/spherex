@@ -141,7 +141,7 @@ void Mission::hop_fill_vel(double Vx, double Vy, double Vz, double yaw)
 
 bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
 {
-    dt = 0.014;
+    dt = 0.016;
     grav = 1.62;
     d = d_;
     theta = theta_;
@@ -196,7 +196,7 @@ void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // 
     }
     else if(hop.wait_counter>100&&hop.up_counter<=10)
     {
-      hop.hop_fill_vel(0,0,3,0);
+      hop.hop_fill_vel(0,0,2,0);
       hop.up_counter++;
       hop.finished = false;
     }
