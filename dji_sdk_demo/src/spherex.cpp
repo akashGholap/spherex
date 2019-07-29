@@ -25,7 +25,8 @@ ros::ServiceClient query_version_service;
 uint8_t flight_status = 255;
 ros::Publisher ctrlVelYawratePub;
 ros::Publisher hopStatusPub;
-
+std::ofstream file1;
+std::ofstream file2;
 
 Mission hop;
 
@@ -49,6 +50,8 @@ int main(int argc, char** argv)
   drone_arm_service          = nh.serviceClient<dji_sdk::DroneArmControl>("dji_sdk/drone_arm_control");
   query_version_service      = nh.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
 
+  file1.open("velocity_from_sdk.csv");
+  file2.open("velocity_published.csv");
   bool obtain_control_flag = obtain_control();
   if(obtain_control_flag)
   {
@@ -137,6 +140,9 @@ void Mission::hop_fill_vel(double Vx, double Vy, double Vz, double yaw)
   controlVelYawRate.axes.push_back(yaw);
   ctrlVelYawratePub.publish(controlVelYawRate);
   ROS_INFO("PUBLISHING VELOCITY");
+  std::stringstream ss;
+  ss<<Vx<<","<<Vy<<","<<Vz<<"\n";
+  file2 << ss.str();
 }
 
 bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
@@ -196,7 +202,7 @@ void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // 
     }
     else if(hop.wait_counter>100&&hop.up_counter<=10)
     {
-      hop.hop_fill_vel(0,0,1.8,0);
+      hop.hop_fill_vel(0,0,2.0,0);
       hop.up_counter++;
       hop.finished = false;
     }
@@ -207,6 +213,9 @@ void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // 
     }
 
   }
+  std::stringstream ss;
+  ss<<vel_from_sdk.vector.x<<","<<vel_from_sdk.vector.y<<","<<vel_from_sdk.vector.z<<"\n";
+  file1 << ss.str();
 }
 
 bool obtain_control()
