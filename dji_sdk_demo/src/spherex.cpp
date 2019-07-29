@@ -141,7 +141,7 @@ void Mission::hop_fill_vel(double Vx, double Vy, double Vz, double yaw)
 
 bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
 {
-    dt = 0.0125;
+    dt = 0.013;
     grav = 1.62;
     d = d_;
     theta = theta_;
