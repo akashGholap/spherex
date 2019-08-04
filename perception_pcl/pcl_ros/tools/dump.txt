@@ -1,0 +1,106 @@
+/*
+// Create the segmentation object
+pcl::SACSegmentation<pcl::PointXYZ> seg;
+// Optional
+seg.setOptimizeCoefficients (true);
+// Mandatory
+seg.setModelType (pcl::SACMODEL_PLANE);
+seg.setMethodType (pcl::SAC_RANSAC);
+//seg.setAxis(axis_plane);
+seg.setDistanceThreshold (0.1);
+//seg.setAxis(axis);
+//seg.setProbability(0.4);
+//seg.setMaxIterations(100);
+//seg.setEpsAngle((3.14*10)/(180));
+int iter(0);
+pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_buffer_plane(new pcl::PointCloud<pcl::PointXYZ>),cloud_buffer_rad(new pcl::PointCloud<pcl::PointXYZ>);
+pcl::ExtractIndices<pcl::PointXYZ> extract;
+*cloud_buffer_rad = *cloud_inRadius_filtered;
+//*cloud_buffer_plane = *cloud_inPlane;
+
+while(cloud_buffer_rad->points.size() > cloud_inRadius->points.size()*0.5)
+{
+  cout<<"number of points buffer rad--- "<<cloud_buffer_rad->points.size()<<"  original*0.3--- "<< cloud_inRadius->points.size()*0.5<<std::endl;
+  pcl::SACSegmentation<pcl::PointXYZ> seg;
+  seg.setModelType (pcl::SACMODEL_PLANE);
+  seg.setMethodType (pcl::SAC_RANSAC);
+  seg.setDistanceThreshold (0.1);
+  seg.setInputCloud(cloud_buffer_rad);
+  seg.segment(*inliers2, *coefficients);
+  pcl::ExtractIndices<pcl::PointXYZ> extract;
+  extract.setInputCloud(cloud_buffer_rad);
+  extract.setIndices(inliers2);
+
+  extract.setNegative(true);
+  pcl::PointCloud<pcl::PointXYZ> cloud_Akash;
+  extract.filter(cloud_Akash);
+  cout<<"number of points in new--- "<<cloud_Akash.points.size()<<std::endl;
+  cloud_buffer_rad->swap(cloud_Akash);
+  cout<<"number of points in old--- "<<cloud_buffer_rad->points.size()<<std::endl;
+  iter++;
+  if(iter>=100) break;
+}
+
+*cloud_inPlane = *cloud_buffer_rad;
+
+pcl::PointIndices::Ptr outliers (new pcl::PointIndices ());
+pcl::ExtractIndices<pcl::PointXYZ> filter_pc2, filter_pc3;
+//pcl::Filter<pcl::PointXYZ> filter_pc3;
+// Initializing with true will allow us to extract the removed indices
+filter_pc2.setInputCloud(cloud_inRadius);
+filter_pc2.setIndices(inliers2);
+//filter_pc2.filter(*cloud_inPlane);
+//filter_pc2.setNegative(false);
+//filter_pc2.getRemovedIndi(*outliers);
+std::cerr << "Model inliers: " << inliers2->indices.size () << std::endl;
+for(size_t i=0; i < inliers2->indices.size(); ++i)
+{
+std::cerr<<inliers2->indices[i]<<std::endl;
+}
+int q[(int)(cloud_inRadius->points.size()-inliers2->indices.size())];
+
+//std::array<int,  cloud_inRadius->points.x.size()> a;
+//std::iota(a.begin(), a.end(), 1);
+int p=0;
+for(int i=0; i < int(cloud_inRadius->points.size()); ++i)
+{
+  for(int j=0; j < int(inliers2->indices.size()); ++j)
+  {
+    if(i == inliers2->indices[j])
+    {
+      //a[i] = inliers2->indices[j];
+      cout<<"matched";
+      break;
+    }
+    else
+    {
+      outliers->indices.push_back((int)i);
+      //cout<<"not matched";
+      p++;
+      break;
+    }
+  }
+}
+/*for(int i=0; i < (int)(cloud_inRadius->points.size()-inliers2->indices.size()); ++i)
+{
+
+//std::cout<<"outlier"<<q[i]<<std::endl;
+outliers->indices.push_back(q[i]) ;
+}
+
+filter_pc3.setInputCloud(cloud_inRadius);
+//filter_pc3.setIndices(inliers2);
+//filter_pc3.getRemovedIndices(*outliers);
+
+filter_pc3.setIndices(outliers);
+filter_pc3.filter(*cloud_inObstacle);
+cout<<"Stop 1";
+std::stringstream ss3;
+ss3 << "3.pcd";
+pcl::io::savePCDFile (ss3.str (), *cloud_inPlane, true);
+cout<<"stop 2";
+std::stringstream ss4;
+ss4 << "4.pcd";
+pcl::io::savePCDFile (ss4.str (), *cloud_inObstacle, true);
+cout<<"stop 3";
+*/
