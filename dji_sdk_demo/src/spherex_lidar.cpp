@@ -77,7 +77,8 @@ int main(int argc, char** argv)
     hopped  =  hop.finished;
     if(hop.icp_pp == true)
     {
-      nextHopSet = set_next_hop();
+      //nextHopSet = set_next_hop();
+      nextHopSet = true;
 
     }
     ros::spinOnce();

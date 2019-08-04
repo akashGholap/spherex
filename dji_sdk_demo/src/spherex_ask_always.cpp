@@ -62,23 +62,27 @@ int main(int argc, char** argv)
   else ROS_INFO("Obtain Control Failed");
 
   double g, d, theta, phi, t_fac;
+  std::cout<<"Please Enter d, theta, phi, and landing factor; g is = 1.62";
+  std::cin>>d>>theta>>phi>>t_fac;
+  bool is_set_start = hop.set_mission(d,theta,phi,t_fac);
+
   bool hopped = true;
 
   while(ros::ok())
   {
-    if(hopped&&nextHopSet)
+    if(hopped&&nextHopSet&&!is_set_start)
     {
-      std::cout<<"Please Enter d, theta, phi, and landing factor; g is = 1.62";
-      std::cin>>d>>theta>>phi>>t_fac;
-      hop.set_mission(d,theta,phi,t_fac);
-      //hop.set_mission(hop.nd, hop.ntheta, hop.nphi, t_fac);
+
+
+      hop.set_mission(hop.nd, hop.ntheta, hop.nphi, t_fac);
       hopped = false;
+
     }
     hopped  =  hop.finished;
     if(hop.icp_pp == true)
     {
       nextHopSet = set_next_hop();
-
+      is_set_start = false;
     }
     ros::spinOnce();
   }
@@ -236,10 +240,26 @@ bool set_next_hop()
   }
   else
   {
-    hop.nd = nhop.response.d;
-    hop.ntheta = nhop.response.theta;
-    hop.nphi = nhop.response.phi;
-    return true;
+    int userinput;
+    int t_fac;
+    std::cout<<"Please Verify the response from the icp service"<<std::endl;
+    std::cout<<" d "<<nhop.response.d<<" Theta "<<nhop.response.theta<<" Phi "<<nhop.response.phi<<std::endl;
+    std::cout<<"Your Response 1 or 0 "<<std::endl;
+    std::cin>>userinput;
+    if(userinput)
+    {
+      hop.nd = nhop.response.d;
+      hop.ntheta = nhop.response.theta;
+      hop.nphi = nhop.response.phi;
+      return true;
+    }
+    else
+    {
+      std::cout<<"Me kya bolu, aap hi dalo ab input d, theta, phi, and landing factor; g is = 1.62";
+      std::cin>>hop.nd>>hop.ntheta>>hop.nphi>>t_fac;
+
+      return true;
+    }
   }
 
 }
