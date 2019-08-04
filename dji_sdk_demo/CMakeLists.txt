@@ -298,6 +298,54 @@ target_link_libraries(spherex
         )
 add_dependencies(spherex dji_sdk_generate_messages_cpp)
 
+add_executable(spherex_aide_start
+        src/spherex_aide_start.cpp)
+
+target_link_libraries(spherex_aide_start
+        ${catkin_LIBRARIES}
+       ${DJIOSDK_LIBRARIES}
+       ${catkin_LIBRARIES}
+       ${OpenCV_LIBRARIES}
+       dlib
+        )
+add_dependencies(spherex_aide_start dji_sdk_generate_messages_cpp)
+
+add_executable(spherex_ask_always
+        src/spherex_ask_always.cpp)
+
+target_link_libraries(spherex_ask_always
+        ${catkin_LIBRARIES}
+       ${DJIOSDK_LIBRARIES}
+       ${catkin_LIBRARIES}
+       ${OpenCV_LIBRARIES}
+       dlib
+        )
+add_dependencies(spherex_ask_always dji_sdk_generate_messages_cpp)
+
+add_executable(spherex_self_start
+        src/spherex_self_start.cpp)
+
+target_link_libraries(spherex_self_start
+        ${catkin_LIBRARIES}
+       ${DJIOSDK_LIBRARIES}
+       ${catkin_LIBRARIES}
+       ${OpenCV_LIBRARIES}
+       dlib
+        )
+add_dependencies(spherex_self_start dji_sdk_generate_messages_cpp)
+
+add_executable(spherex_lidar
+        src/spherex_lidar.cpp)
+
+target_link_libraries(spherex_lidar
+        ${catkin_LIBRARIES}
+       ${DJIOSDK_LIBRARIES}
+       ${catkin_LIBRARIES}
+       ${OpenCV_LIBRARIES}
+       dlib
+        )
+add_dependencies(spherex_lidar dji_sdk_generate_messages_cpp)
+
 add_executable(icp_ros_runtime src/icp_ros_runtime.cpp)
 target_include_directories(icp_ros_runtime PRIVATE ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(icp_ros_runtime ${PYTHON_LIBRARIES} ${Boost_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES})
