@@ -88,7 +88,7 @@ void storefilename_callback(const std_msgs::String& pcd_file_name)
 {
   if(!hop.hop_status && hop.icp_status)   //if hop_status is true it means hop is completed, icp_status true is ICP completed
   {
-    if(counter % 1 == 0)
+    if(counter % 1 == 0)                    //please remove counter to work with hops
     {
     	std::stringstream ss;
     	ss << pcd_file_name.data << ".pcd";
@@ -97,7 +97,7 @@ void storefilename_callback(const std_msgs::String& pcd_file_name)
     }
     counter++;
   }
-  if(counter >= 500)
+  if(counter >= 500)                      //this entire loop 
   {
       cout<<" Value of number of pcd"<<counter<<endl;
       hop.hop_status=true;
