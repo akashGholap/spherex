@@ -118,7 +118,7 @@ void hop_status_callback(const std_msgs::Bool& status)
   hop.hop_status = status.data;
   std_msgs::Bool icp_status;
   icp_status.data = hop.icp_status;
-  cout<<"current icp status"<<hop.icp_status<<endl;
+  std::cout<<"current icp status"<<hop.icp_status<<std::endl;
   icpppStatusPub.publish(icp_status);
 }
 
