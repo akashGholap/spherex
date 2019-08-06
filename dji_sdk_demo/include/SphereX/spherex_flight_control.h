@@ -98,6 +98,7 @@ public:
   bool set_mission(double d_, double theta_, double phi_, double t_fac_);
   void hop_fill_vel(double Vx, double Vy, double Vz, double yaw);
   void hop_ex();
+  void hop_status_publish();
 };
 
 void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,

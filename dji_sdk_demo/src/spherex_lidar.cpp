@@ -81,6 +81,7 @@ int main(int argc, char** argv)
       nextHopSet = true;
 
     }
+    hop_status_publish();
     ros::spinOnce();
   }
 
@@ -133,11 +134,17 @@ void Mission::hop_ex()
           hop.land_t = 0;
           hop.finished = false;
         }
-        std_msgs::Bool hopStatus;
+      /*  std_msgs::Bool hopStatus;
         hopStatus.data = hop.finished;
-        hopStatusPub.publish(hopStatus);
+        hopStatusPub.publish(hopStatus);*/
 }
 
+void Mission::hop_status_publish(void)
+{
+  std_msgs::Bool hopStatus;
+  hopStatus.data = hop.finished;
+  hopStatusPub.publish(hopStatus);
+}
 void Mission::hop_fill_vel(double Vx, double Vy, double Vz, double yaw)
 {
 
