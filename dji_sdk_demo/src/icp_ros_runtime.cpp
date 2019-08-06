@@ -124,6 +124,7 @@ void hop_status_callback(const std_msgs::Bool& status)
 
 bool set_next_hop_callback(dji_sdk::setNextHop::Request &req, dji_sdk::setNextHop::Response &res)
 {
+  std::cout<<"entered in service loop"<<std::endl;
   if(req.ifpped)
   {
     res.d = hop.d;
