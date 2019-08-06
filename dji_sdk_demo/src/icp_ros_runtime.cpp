@@ -86,24 +86,29 @@ int main (int argc, char** argv)
 
 void storefilename_callback(const std_msgs::String& pcd_file_name)
 {
+
   if(!hop.hop_status && hop.icp_status)   //if hop_status is true it means hop is completed, icp_status true is ICP completed
   {
-    if(counter % 1 == 0)                    //please remove counter to work with hops
-    {
+    //if(counter % 1 == 0)                    //please remove counter to work with hops
+    //{
     	std::stringstream ss;
     	ss << pcd_file_name.data << ".pcd";
       ROS_INFO("%s",ss.str().c_str());
     	pcdfile_write << ss.str()<<endl;
-    }
-    counter++;
-  }
-  if(counter >= 500)                      //this entire loop 
+    //}
+    //counter++;
+   }
+/*
+  if(counter >= 500)                      //this entire loop
   {
       cout<<" Value of number of pcd"<<counter<<endl;
       hop.hop_status=true;
   }
   else hop.hop_status = false;
+*/
 }
+
+
 
 
 
@@ -313,7 +318,7 @@ bool compute_next_hop()
 
       //plane_inliers_pointer.at(0) = outliers2;
       //plane_inliers_pointer[0] = outliers2;
-      cout << "Point Cloud " << 0 << "has got " << plane_inliers_pointer[2]->indices.size() << " Points" << endl;
+     /*  cout << "Point Cloud " << 0 << "has got " << plane_inliers_pointer[2]->indices.size() << " Points" << endl;
       extract.setInputCloud(cloud_outPlane);
       extract.setIndices(plane_inliers_pointer[0]);
       cout<<"Size of Cloud 1 "<<plane_inliers_pointer[0]->indices.size()<<endl;
@@ -358,7 +363,7 @@ bool compute_next_hop()
       std::stringstream ss11;
       ss11 << "11.pcd";
       pcl::io::savePCDFile (ss11.str (), *cloud6, true);
-
+    */
       int numberOfSectors = 24;
       int anglePerSector = 360/numberOfSectors;
       std::vector<Plane, Eigen::aligned_allocator<Plane> > Planes;
@@ -413,6 +418,7 @@ bool compute_next_hop()
 
 
       }
+      /*
       cout<<"total_number of indices in plane 0" << plane_inliers_pointer[0]->indices.size()<<endl;
       for(int i = 0; i < numberOfSectors; i++)
       {
@@ -453,7 +459,7 @@ bool compute_next_hop()
       {
       cout<<"size of indices in "<<i<<"th sector of each plane " << Planes[7].sectors[i].indices->indices.size()<<" index is "<<Planes[7].sectors[i].indicate<<endl;
       }
-
+      */
       std::vector<Candidate, Eigen::aligned_allocator<Candidate>> Candidates;
       std::vector<bool> bool_string;
       Candidate candidate;
@@ -519,9 +525,13 @@ bool compute_next_hop()
       hop.theta = 60;
       cout<<"hop phi is"<<hop.phi<<endl;
       hop.icp_status = true;
+      return 1;
 
 
-
+  }
+  else
+  {
+    return 0;
   }
 
 }
@@ -579,7 +589,7 @@ void pairAlign (const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt
   // Set the maximum distance between two correspondences (src<->tgt) to 10cm
   // Note: adjust this based on the size of your datasets
   reg.setMaxCorrespondenceDistance (0.25);
-  reg.setEuclideanFitnessEpsilon(0.01);
+
   // Set the point representation
   reg.setPointRepresentation (boost::make_shared<const MyPointRepresentation> (point_representation));
 
@@ -589,8 +599,8 @@ void pairAlign (const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt
   // Run the same optimization in a loop and visualize the results
   Eigen::Matrix4f Ti = Eigen::Matrix4f::Identity (), prev, targetToSource;
   PointCloudWithNormals::Ptr reg_result = points_with_normals_src;
-  reg.setMaximumIterations (250);
-  for (int i = 0; i < 1; ++i)
+  reg.setMaximumIterations (2);
+  for (int i = 0; i < 30; ++i)
   {
     PCL_INFO ("Iteration Nr. %d.\n", i);
 

@@ -334,6 +334,8 @@ target_link_libraries(spherex_self_start
         )
 add_dependencies(spherex_self_start dji_sdk_generate_messages_cpp)
 
+
+
 add_executable(spherex_lidar
         src/spherex_lidar.cpp)
 
@@ -350,7 +352,9 @@ add_executable(icp_ros_runtime src/icp_ros_runtime.cpp)
 target_include_directories(icp_ros_runtime PRIVATE ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(icp_ros_runtime ${PYTHON_LIBRARIES} ${Boost_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-
+add_executable(icp_test src/icp_test.cpp)
+target_include_directories(icp_test PRIVATE ${PYTHON_INCLUDE_DIRS})
+target_link_libraries(icp_test ${PYTHON_LIBRARIES} ${Boost_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 if (OPEN_CV_3_3_0_INSTALLED AND FOUND_OPENCV_VIZ AND FOUND_ADVANCED_SENSING)
     message(STATUS "Found OpenCV ${OpenCV_VERSION}, Viz3d, and advanced sensing module, depth percpetion demo will be compiled")
