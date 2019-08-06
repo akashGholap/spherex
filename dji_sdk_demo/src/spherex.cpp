@@ -98,7 +98,7 @@ void Mission::hop_ex()
           if(hop_land_vel >= -0.25)
           {
             hop.touchdown_counter++;
-            if(hop.touchdown_counter >= 25)
+            if(hop.touchdown_counter >= 10)
             {
               hop_fill_vel(0,0,0,0);
               hop.finished = true;
@@ -115,13 +115,14 @@ void Mission::hop_ex()
           else
           {
             hop_fill_vel(0,0, hop_land_vel,0);
+            ROS_INFO("%lf, %lf, %lf, %f", 0, 0 , hop_land_vel, 0);
             ROS_INFO("Pre touchdown");
           }
         }
         else
         {
-          hop_fill_vel(hop.x_vel,hop.y_vel,z_vel_c,0);
-          ROS_INFO("%lf, %lf, %lf", hop.x_vel,hop.y_vel,z_vel_c);
+          hop_fill_vel(hop.x_vel,hop.y_vel,z_vel_c,hop.yaw_rate);
+          ROS_INFO("%lf, %lf, %lf, %f", hop.x_vel,hop.y_vel,z_vel_c, hop.yaw_rate);
           hop.land_t = 0;
           hop.finished = false;
         }
@@ -169,6 +170,8 @@ bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
     x_vel = v*cos(theta_rad)*sin(phi_rad);
     y_vel = v*cos(theta_rad)*cos(phi_rad);
     z_vel = v*sin(theta_rad);
+    t_est = 1.8*v*sin(theta_rad)/grav;
+    yaw_rate = phi/t_est;
     return true;
 }
 
