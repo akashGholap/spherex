@@ -356,6 +356,10 @@ add_executable(icp_test src/icp_test.cpp)
 target_include_directories(icp_test PRIVATE ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(icp_test ${PYTHON_LIBRARIES} ${Boost_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+add_executable(tests src/tests.cpp)
+target_include_directories(tests PRIVATE ${PYTHON_INCLUDE_DIRS})
+target_link_libraries(tests ${PYTHON_LIBRARIES} ${Boost_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 if (OPEN_CV_3_3_0_INSTALLED AND FOUND_OPENCV_VIZ AND FOUND_ADVANCED_SENSING)
     message(STATUS "Found OpenCV ${OpenCV_VERSION}, Viz3d, and advanced sensing module, depth percpetion demo will be compiled")
 
