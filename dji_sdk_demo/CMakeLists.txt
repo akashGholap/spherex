@@ -351,6 +351,7 @@ add_dependencies(spherex_lidar dji_sdk_generate_messages_cpp)
 add_executable(icp_ros_runtime src/icp_ros_runtime.cpp)
 target_include_directories(icp_ros_runtime PRIVATE ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(icp_ros_runtime ${PYTHON_LIBRARIES} ${Boost_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_dependencies(icp_ros_runtime dji_sdk_generate_messages_cpp)
 
 add_executable(icp_test src/icp_test.cpp)
 target_include_directories(icp_test PRIVATE ${PYTHON_INCLUDE_DIRS})
