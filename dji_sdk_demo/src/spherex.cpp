@@ -25,6 +25,7 @@ ros::ServiceClient query_version_service;
 uint8_t flight_status = 255;
 ros::Publisher ctrlVelYawratePub;
 ros::Publisher hopStatusPub;
+geometry_msgs::Quaternion current_atti;
 std::ofstream file1;
 std::ofstream file2;
 
@@ -34,7 +35,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "spherex");
   ros::NodeHandle nh;
-
+  ros::Subscriber attitudeSub = nh.subscribe("dji_sdk/attitude", 50, &attitude_callback);
   ros::Subscriber getVelocity = nh.subscribe("dji_sdk/velocity" ,100, &getVelocity_callback);
   ros::Subscriber flightStatusSub = nh.subscribe("dji_sdk/flight_status", 10, &flight_status_callback);
   //ros::Subscriber lidarProcessStatusSub = nh.subscribe("spherex/lidar_process_status", 100, &lidar_process_status_callback);ls
@@ -121,8 +122,17 @@ void Mission::hop_ex()
         }
         else
         {
-          hop_fill_vel(hop.x_vel,hop.y_vel,z_vel_c,hop.yaw_rate);
-          ROS_INFO("%lf, %lf, %lf, %f", hop.x_vel,hop.y_vel,z_vel_c, hop.yaw_rate);
+          if(hop.check_yaw())
+          {
+            hop_fill_vel(hop.x_vel,hop.y_vel,z_vel_c,hop.yaw_rate);
+            ROS_INFO("%lf, %lf, %lf, %f", hop.x_vel,hop.y_vel,z_vel_c, hop.yaw_rate);
+          }
+          else
+          {
+          hop_fill_vel(hop.x_vel,hop.y_vel,z_vel_c,0);
+          ROS_INFO("%lf, %lf, %lf, %f", hop.x_vel,hop.y_vel,z_vel_c, 0);
+          }
+
           hop.land_t = 0;
           hop.finished = false;
         }
@@ -131,6 +141,27 @@ void Mission::hop_ex()
         hopStatusPub.publish(hopStatus);
 }
 
+bool Mission::check_yaw(void)
+{
+  float yawThresholdInDeg   = 2;
+  double yawDesiredRad     = deg2rad * hop.phi;
+  double yawThresholdInRad = deg2rad * yawThresholdInDeg;
+  double yawInRad          = toEulerAngle(current_atti).z;
+  if((yawInRad - yawDesiredRad) < yawThresholdInRad)
+  {
+    return 1;
+  }
+  else return 0;
+
+}
+geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
+{
+  geometry_msgs::Vector3 ans;
+
+  tf::Matrix3x3 R_FLU2ENU(tf::Quaternion(quat.x, quat.y, quat.z, quat.w));
+  R_FLU2ENU.getRPY(ans.x, ans.y, ans.z);
+  return ans;
+}
 void Mission::hop_fill_vel(double Vx, double Vy, double Vz, double yaw)
 {
 
@@ -281,4 +312,8 @@ bool is_M100()
 void flight_status_callback(const std_msgs::UInt8::ConstPtr& msg)
 {
   flight_status = msg->data;
+}
+void attitude_callback(const geometry_msgs::QuaternionStamped::ConstPtr& msg)
+{
+  current_atti = msg->quaternion;
 }

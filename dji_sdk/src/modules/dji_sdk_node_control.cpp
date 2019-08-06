@@ -118,7 +118,7 @@ void DJISDKNode::flightControl(uint8_t flag, float xSP, float ySP, float zSP, fl
 void
 DJISDKNode::flightControlSetpointCallback(
   const sensor_msgs::Joy::ConstPtr& pMsg)
-{ 
+{
   float xSP    = pMsg->axes[0];
   float ySP    = pMsg->axes[1];
   float zSP    = pMsg->axes[2];
