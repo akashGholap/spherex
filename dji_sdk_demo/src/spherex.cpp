@@ -203,6 +203,7 @@ bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
     z_vel = v*sin(theta_rad);
     t_est = 1.8*v*sin(theta_rad)/grav;
     yaw_rate = phi/t_est;
+    ROS_INFO("Not Stuck");
     return true;
 }
 
