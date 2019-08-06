@@ -543,7 +543,11 @@ bool compute_next_hop()
     cout<<"hop phi is"<<hop.phi<<endl;
     hop.icp_status = true;
     return 1;
-
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 void pairAlign (const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt, PointCloud::Ptr output, Eigen::Matrix4f &final_transform, bool downsample = true)
