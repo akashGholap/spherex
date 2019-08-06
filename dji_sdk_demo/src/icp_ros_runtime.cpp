@@ -33,8 +33,8 @@ int main (int argc, char** argv)
   {
       if(hop.hop_status==true)
       {
-          ROS_INFO("in Hopped");
-
+          ROS_INFO("iT Hopped");
+        /*
           loadData_from_txt(data);
 
           ROS_INFO("Missed Load data");
@@ -73,6 +73,7 @@ int main (int argc, char** argv)
            ss << "1.pcd";
            pcl::io::savePCDFile (ss.str (), *global_cloud, true);
            counter = 0;
+        */
 					 hop.icp_status = false;
 
        }
@@ -207,7 +208,7 @@ bool compute_next_hop()
 {
   if(hop.hop_status && !hop.icp_status)
   {
-
+      /*
       double x_ = GlobalTransform(0, 3);
       double y_ = GlobalTransform(1, 3);
       double z_ = GlobalTransform(2, 3);
@@ -363,7 +364,8 @@ bool compute_next_hop()
       std::stringstream ss11;
       ss11 << "11.pcd";
       pcl::io::savePCDFile (ss11.str (), *cloud6, true);
-    */
+      */
+      /*
       int numberOfSectors = 24;
       int anglePerSector = 360/numberOfSectors;
       std::vector<Plane, Eigen::aligned_allocator<Plane> > Planes;
@@ -460,6 +462,7 @@ bool compute_next_hop()
       cout<<"size of indices in "<<i<<"th sector of each plane " << Planes[7].sectors[i].indices->indices.size()<<" index is "<<Planes[7].sectors[i].indicate<<endl;
       }
       */
+      /*
       std::vector<Candidate, Eigen::aligned_allocator<Candidate>> Candidates;
       std::vector<bool> bool_string;
       Candidate candidate;
@@ -533,6 +536,13 @@ bool compute_next_hop()
   {
     return 0;
   }
+    */
+    hop.d = 1.5;
+    hop.theta = 60;
+    hop.phi =70;
+    cout<<"hop phi is"<<hop.phi<<endl;
+    hop.icp_status = true;
+    return 1;
 
 }
 
