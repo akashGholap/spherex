@@ -237,7 +237,7 @@ void icp_pp_status_callback(const std_msgs::Bool& status)
 bool set_next_hop()
 {
   dji_sdk::setNextHop nhop;
-  nhop.request.ifpped = 1;
+  nhop.request.ifpped = true;
   set_next_hop_service.call(nhop);
   if(!nhop.response.vset)
   {

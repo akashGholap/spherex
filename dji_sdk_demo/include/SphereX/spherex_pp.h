@@ -93,7 +93,7 @@ class SphereX
   float x, y, z; //current
   float nxp, nyp, nzp; //predicted
   float preVecPhi;
-	SphereX() : hop_status(false),icp_status(true),d(0.0),theta(0.0),phi(0.0),od(0.0),otheta(0.0),ophi(0.0),ox(0.0),oy(0.0),oz(0.0),x(0.0),y(0.0),z(0.0),nxp(0.0),nyp(0.0),nzp(0.0),preVecPhi(0.0)
+	SphereX() : hop_status(false),icp_status(false),d(0.0),theta(0.0),phi(0.0),od(0.0),otheta(0.0),ophi(0.0),ox(0.0),oy(0.0),oz(0.0),x(0.0),y(0.0),z(0.0),nxp(0.0),nyp(0.0),nzp(0.0),preVecPhi(0.0)
   {}
 
 };

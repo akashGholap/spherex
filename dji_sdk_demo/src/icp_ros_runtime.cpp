@@ -31,7 +31,7 @@ int main (int argc, char** argv)
 
   while(ros::ok())
   {
-      if(hop.hop_status==true&&hop.icp_status)
+      if(hop.hop_status&&!hop.icp_status)
       {
           ROS_INFO("iT Hopped");
         /*
@@ -73,11 +73,11 @@ int main (int argc, char** argv)
            ss << "1.pcd";
            pcl::io::savePCDFile (ss.str (), *global_cloud, true);
            counter = 0;
-        */
-					 hop.icp_status = false;
+        */ bool ifcompute = compute_next_hop();
+					 hop.icp_status = true;
 
        }
-			 bool ifcompute = compute_next_hop();
+
        ros::spinOnce();
    }
 
@@ -88,7 +88,7 @@ int main (int argc, char** argv)
 void storefilename_callback(const std_msgs::String& pcd_file_name)
 {
 
-  if(!hop.hop_status && hop.icp_status)   //if hop_status is true it means hop is completed, icp_status true is ICP completed
+  if(!hop.hop_status && !hop.icp_status)   //if hop_status is true it means hop is completed, icp_status true is ICP and PP completed
   {
     //if(counter % 1 == 0)                    //please remove counter to work with hops
     //{
@@ -129,6 +129,7 @@ bool set_next_hop_callback(dji_sdk::setNextHop::Request &req, dji_sdk::setNextHo
     res.theta = hop.theta;
     res.phi = hop.phi;
     res.vset = true;
+    hop.icp_status = false;
     ROS_INFO("Next hop Set Request Properly Adressed");
     return true;
   }
@@ -206,8 +207,7 @@ void loadData_from_txt (std::vector<PCD, Eigen::aligned_allocator<PCD> > &models
 
 bool compute_next_hop()
 {
-  if(hop.hop_status && !hop.icp_status)
-  {
+
       /*
       double x_ = GlobalTransform(0, 3);
       double y_ = GlobalTransform(1, 3);
@@ -541,13 +541,8 @@ bool compute_next_hop()
     hop.theta = 60;
     hop.phi =70;
     cout<<"hop phi is"<<hop.phi<<endl;
-    hop.icp_status = true;
     return 1;
-  }
-  else
-  {
-    return 0;
-  }
+
 }
 
 void pairAlign (const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt, PointCloud::Ptr output, Eigen::Matrix4f &final_transform, bool downsample = true)
