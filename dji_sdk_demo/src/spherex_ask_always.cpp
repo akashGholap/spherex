@@ -84,6 +84,7 @@ int main(int argc, char** argv)
       nextHopSet = set_next_hop();
       is_set_start = false;
     }
+    hop.hop_status_publish();
     ros::spinOnce();
   }
 
@@ -152,7 +153,12 @@ void Mission::hop_fill_vel(double Vx, double Vy, double Vz, double yaw)
   ctrlVelYawratePub.publish(controlVelYawRate);
   ROS_INFO("PUBLISHING VELOCITY");
 }
-
+void Mission::hop_status_publish(void)
+{
+  std_msgs::Bool hopStatus;
+  hopStatus.data = hop.finished;
+  hopStatusPub.publish(hopStatus);
+}
 bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
 {
     grav = 1.62;

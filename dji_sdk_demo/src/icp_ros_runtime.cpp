@@ -31,7 +31,7 @@ int main (int argc, char** argv)
 
   while(ros::ok())
   {
-      if(hop.hop_status==true)
+      if(hop.hop_status==true&&hop.icp_status)
       {
           ROS_INFO("iT Hopped");
         /*
