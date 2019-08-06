@@ -210,6 +210,7 @@ bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
 
 void getVelocity_callback(const geometry_msgs::Vector3Stamped& vel_from_sdk) // prototyped in the flight control header
 {
+  ROS_INFO("In velocity callback");
   hop.hold_counter++;
   if(hop.hold_counter==100)
   {
