@@ -40,7 +40,7 @@ int main(int argc, char** argv)
   ros::Subscriber getVelocity = nh.subscribe("dji_sdk/velocity" ,100, &getVelocity_callback);
   ros::Subscriber flightStatusSub = nh.subscribe("dji_sdk/flight_status", 10, &flight_status_callback);
   ros::Subscriber  icpppStatusSub = nh.subscribe("spherex/icp_pp_status", 10, &icp_pp_status_callback);
-  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 100);
+  ctrlVelYawratePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUvelocity_yawrate", 50);
   hopStatusPub = nh.advertise<std_msgs::Bool>("spherex/hopStatus",100);
   //note
   //make a hop status advertiser
@@ -111,7 +111,7 @@ void Mission::hop_ex()
           if(hop_land_vel >= -0.25)
           {
             hop.touchdown_counter++;
-            if(hop.touchdown_counter >= 25)
+            if(hop.touchdown_counter >= 10)
             {
               hop_fill_vel(0,0,0,0);
               hop.finished = true;
@@ -128,13 +128,14 @@ void Mission::hop_ex()
           else
           {
             hop_fill_vel(0,0, hop_land_vel,0);
+            ROS_INFO("%lf, %lf, %lf, %f", 0, 0 , hop_land_vel, 0);
             ROS_INFO("Pre touchdown");
           }
         }
         else
         {
-          hop_fill_vel(hop.x_vel,hop.y_vel,z_vel_c,0);
-          ROS_INFO("%lf, %lf, %lf", hop.x_vel,hop.y_vel,z_vel_c);
+          hop_fill_vel(hop.x_vel,hop.y_vel,z_vel_c,hop.yaw_rate);
+          ROS_INFO("%lf, %lf, %lf, %f", hop.x_vel,hop.y_vel,z_vel_c, hop.yaw_rate);
           hop.land_t = 0;
           hop.finished = false;
         }
@@ -162,6 +163,7 @@ void Mission::hop_status_publish(void)
 }
 bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
 {
+    dt = 0.016;
     grav = 1.62;
     d = d_;
     theta = theta_;
@@ -183,6 +185,8 @@ bool Mission::set_mission(double d_, double theta_, double phi_, double t_fac_)
     x_vel = v*cos(theta_rad)*sin(phi_rad);
     y_vel = v*cos(theta_rad)*cos(phi_rad);
     z_vel = v*sin(theta_rad);
+    t_est = 1.8*v*sin(theta_rad)/grav;
+    yaw_rate = phi/t_est;
     return true;
 }
 
