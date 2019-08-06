@@ -79,7 +79,7 @@ int main(int argc, char** argv)
 
     }
     hopped  =  hop.finished;
-    if(hop.icp_pp)
+    if(hop.icp_pp&&hopped)
     {
       std::cout<<"is it in icp_pp"<<std::endl;
       nextHopSet = set_next_hop();
