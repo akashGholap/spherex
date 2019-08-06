@@ -50,7 +50,7 @@ int main(int argc, char** argv)
   drone_task_service         = nh.serviceClient<dji_sdk::DroneTaskControl>("dji_sdk/drone_task_control");
   drone_arm_service          = nh.serviceClient<dji_sdk::DroneArmControl>("dji_sdk/drone_arm_control");
   query_version_service      = nh.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
-  set_next_hop_service       = nh.serviceClient<dji_sdk::setNextHop>("spherex/set_next_hop_service");
+  set_next_hop_service       = nh.serviceClient<dji_sdk::setNextHop>("dji_sdk/set_next_hop_service");
 
   bool nextHopSet = true;
 
