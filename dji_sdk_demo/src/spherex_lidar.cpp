@@ -81,7 +81,7 @@ int main(int argc, char** argv)
       nextHopSet = true;
 
     }
-    hop_status_publish();
+    hop.hop_status_publish();
     ros::spinOnce();
   }
 
