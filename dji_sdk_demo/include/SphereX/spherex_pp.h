@@ -21,6 +21,7 @@
 #include <pcl/registration/icp.h>
 #include <pcl/registration/icp_nl.h>
 #include <pcl/registration/transforms.h>
+#include <Eigen/Geometry>
 
 //#include <pcl/visualization/pcl_visualizer.h>
 //#include <pcl/visualization/cloud_viewer.h>
@@ -28,7 +29,12 @@
 #include <pcl/sample_consensus/method_types.h>
 #include <pcl/sample_consensus/model_types.h>
 #include <pcl/segmentation/sac_segmentation.h>
-
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl_ros/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/conversions.h>
+#include <pcl_ros/transforms.h>
 
 //convenient typedefs
 typedef pcl::PointXYZ PointT;
@@ -93,6 +99,7 @@ class SphereX
   float x, y, z; //current
   float nxp, nyp, nzp; //predicted
   float preVecPhi;
+
 	SphereX() : hop_status(false),icp_status(false),d(0.0),theta(0.0),phi(0.0),od(0.0),otheta(0.0),ophi(0.0),ox(0.0),oy(0.0),oz(0.0),x(0.0),y(0.0),z(0.0),nxp(0.0),nyp(0.0),nzp(0.0),preVecPhi(0.0)
   {}
 
@@ -128,9 +135,9 @@ void pairAlign (const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt
 
 bool set_next_hop_callback(dji_sdk::setNextHop::Request &req, dji_sdk::setNextHop::Response &res);
 
-void hop_status_callback(const std_msgs::Bool& status);
+void hop_status_callback(const std_msgs::Bool &status);
 
 bool compute_next_hop();
-
+void point_cloud_callback (const sensor_msgs::PointCloud2 &cloud_msg);
 
 #endif

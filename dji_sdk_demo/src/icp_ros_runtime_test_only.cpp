@@ -6,13 +6,16 @@
 Eigen::Matrix4f GlobalTransform = Eigen::Matrix4f::Identity ();
 PointCloud::Ptr global_cloud (new PointCloud), cloud_inRadius (new PointCloud), cloud_inPlane (new PointCloud);
 PointCloud::Ptr cloud_inObstacle (new PointCloud),cloud_outPlane (new PointCloud), cloud_plane_one(new PointCloud);
+std::vector<PointCloud::Ptr, Eigen::aligned_allocator<PointCloud::Ptr>> modelClouds;
 
 std::ofstream pcdfile_write;
 
 ros::ServiceServer set_next_hop_server;
+ros::Subscriber pointCloudSub;
 ros::Publisher icpppStatusPub;
 int counter=0;
 SphereX hop;
+int flag;
 
 int main (int argc, char** argv)
 {
@@ -20,61 +23,113 @@ int main (int argc, char** argv)
   ros::init(argc,argv,"icp_ros_runtime");
 	ros::NodeHandle nh;
   ros::Subscriber pcdFileListSub = nh.subscribe("/pcd_file_string", 10, &storefilename_callback);
-  ros::Subscriber hopStatusSub = nh.subscribe("spherex/hopStatus", 100, &hop_status_callback);
+  ros::Subscriber hopStatusSub = nh.subscribe("spherex/hopStatus", &hop_status_callback);
   set_next_hop_server      = nh.advertiseService("dji_sdk/set_next_hop_service",  &set_next_hop_callback);
   icpppStatusPub = nh.advertise<std_msgs::Bool>("spherex/icp_pp_status", 100);
+  pointCloudSub = nh.subscribe ("/os1_cloud_node/points", &point_cloud_callback);
 
   pcdfile_write.open ("pcd_file_list.txt");
 
   std::vector<PCD, Eigen::aligned_allocator<PCD> > data;
-
+  cout<<"flag"<<endl;
+  cin>>flag;
 
   while(ros::ok())
   {
       if(hop.hop_status&&!hop.icp_status)
       {
           ROS_INFO("iT Hopped");
-        /*
-          loadData_from_txt(data);
-
-          ROS_INFO("Missed Load data");
-
-          if (data.empty ())
+          if(flag)
           {
-            PCL_ERROR ("Syntax is: %s <source.pcd> <target.pcd> [*]", argv[0]);
-            PCL_ERROR ("[*] - multiple files can be added. The registration results of (i, i+1) will be registered against (i+2), etc");
-            return (-1);
-          }
-          PCL_INFO ("Loaded %d datasets.", (int)data.size ());
+              loadData_from_txt(data);
+              if (data.empty ())
+              {
+                PCL_ERROR ("Syntax is: %s <source.pcd> <target.pcd> [*]", argv[0]);
+                PCL_ERROR ("[*] - multiple files can be added. The registration results of (i, i+1) will be registered against (i+2), etc");
+                return (-1);
+              }
+              PCL_INFO ("Loaded %d datasets.", (int)data.size ());
 
-        	PointCloud::Ptr result (new PointCloud), source, target;
-          Eigen::Matrix4f pairTransform;
+            	PointCloud::Ptr result (new PointCloud), source, target;
+              Eigen::Matrix4f pairTransform;
 
-          for (size_t i = 1; i < data.size (); ++i)
-          {
-            source = data[i-1].cloud;
-            target = data[i].cloud;
+              for (size_t i = 1; i < data.size (); ++i)
+              {
+                source = data[i-1].cloud;
+                target = data[i].cloud;
 
-            PointCloud::Ptr temp (new PointCloud);
-            PCL_INFO ("Aligning %s (%d) with %s (%d).\n", data[i].f_name.c_str (), source->points.size (), data[i-1].f_name.c_str (), target->points.size ());
-            pairAlign (source, target, temp, pairTransform, true);
+                PointCloud::Ptr temp (new PointCloud);
+                PCL_INFO ("Aligning %s (%d) with %s (%d).\n", data[i].f_name.c_str (), source->points.size (), data[i-1].f_name.c_str (), target->points.size ());
+                pairAlign (source, target, temp, pairTransform, true);
 
-            GlobalTransform *= pairTransform;
+                Eigen::Affine3f aff(pairTransform);
 
-            pcl::transformPointCloud(*target, *result, GlobalTransform);
+                GlobalTransform *= pairTransform;
 
-            *global_cloud += *result;
-            std::cout << GlobalTransform << std::endl;
-            std::cout << "Now lets go to the local pairtransform" << std::endl;
-            std::cout << pairTransform << std::endl;
+                pcl::transformPointCloud(*target, *result, GlobalTransform);
 
-         }
-           std::stringstream ss;
-           ss << "1.pcd";
-           pcl::io::savePCDFile (ss.str (), *global_cloud, true);
-           counter = 0;
-        */ bool ifcompute = compute_next_hop();
-					 hop.icp_status = true;
+                *global_cloud += *result;
+                std::cout << GlobalTransform << std::endl;
+                std::cout << "Now lets go to the local pairtransform" << std::endl;
+                std::cout << pairTransform << std::endl;
+
+             }
+               std::stringstream ss;
+               ss << "1.pcd";
+               pcl::io::savePCDFile (ss.str (), *global_cloud, true);
+               counter = 0;
+               bool ifcompute = compute_next_hop();
+    					 hop.icp_status = true;
+             }
+            else
+            {
+
+              if (modelClouds.empty ())
+              {
+                PCL_ERROR ("Syntax is: %s <source.pcd> <target.pcd> [*]", argv[0]);
+                PCL_ERROR ("[*] - multiple files can be added. The registration results of (i, i+1) will be registered against (i+2), etc");
+                return (-1);
+              }
+              PCL_INFO ("Loaded %d datasets.", (int)modelClouds.size ());
+
+            	PointCloud::Ptr result (new PointCloud), source, target;
+              Eigen::Matrix4f pairTransform;
+
+              for (size_t i = 2; i < modelClouds.size (); ++i)
+              {
+                source = modelClouds[i-1];
+                target = modelClouds[i];
+
+                PointCloud::Ptr temp (new PointCloud);
+                pairAlign (source, target, temp, pairTransform, true);
+
+                GlobalTransform *= pairTransform;
+                Eigen::Affine3f affine(GlobalTransform);
+                Eigen::Vector3f p = affine.translation();
+                cout<<"Translation Vector is"<<endl<<p<<endl;
+
+
+                pcl::transformPointCloud(*target, *result, GlobalTransform);
+
+                *global_cloud += *result;
+                std::cout << GlobalTransform << std::endl;
+                std::cout << "Now lets go to the local pairtransform" << std::endl;
+                std::cout << pairTransform << std::endl;
+
+             }
+
+              Eigen::Affine3f aff(GlobalTransform);
+              Eigen::Vector3f v = aff.translation();
+              cout<<"Translation Vector is"<<endl<<v<<endl;
+               std::stringstream ss;
+               ss << "1.pcd";
+               pcl::io::savePCDFile (ss.str (), *global_cloud, true);
+               counter = 0;
+               bool ifcompute = compute_next_hop();
+    					 hop.icp_status = true;
+
+            }
+
 
        }
 
@@ -82,25 +137,58 @@ int main (int argc, char** argv)
    }
 
 }
+void point_cloud_callback (const sensor_msgs::PointCloud2& cloud_msg)
+   {
+      // Container for original & filtered data
 
+        if(!hop.hop_status && !hop.icp_status)   //if hop_status is true it means hop is completed, icp_status true is ICP and PP completed
+        {
+     pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2;
+     pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
+     pcl::PCLPointCloud2 cloud_filtered;
+
+     // Convert to PCL data type
+     pcl_conversions::toPCL(cloud_msg, *cloud);
+
+     // Perform the actual filtering
+     pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
+     sor.setInputCloud (cloudPtr);
+     sor.setLeafSize (0.1, 0.1, 0.1);
+     sor.filter (cloud_filtered);
+     pcl::PointCloud<PointT>::Ptr temp_cloud(new pcl::PointCloud<PointT>);
+     pcl::fromPCLPointCloud2(cloud_filtered,*temp_cloud);
+     //remove NAN points from the cloud
+     std::vector<int> indices;
+     pcl::removeNaNFromPointCloud(*temp_cloud,*temp_cloud, indices);
+     modelClouds.push_back(temp_cloud);
+     cout<<temp_cloud->points.size()<<endl;
+     cout<<modelClouds.size()<<endl;
+     counter++;
+     }
+     if(counter >= 500)                      //this entire loop
+     {
+      cout<<" Value of number of pcd"<<counter<<endl;
+      hop.hop_status=true;
+      }
+       else hop.hop_status = false;
+     }
 // Functions Start from here
 
 void storefilename_callback(const std_msgs::String& pcd_file_name)
 {
-
+/*
   if(!hop.hop_status && !hop.icp_status)   //if hop_status is true it means hop is completed, icp_status true is ICP and PP completed
   {
     //if(counter % 1 == 0)                    //please remove counter to work with hops
-    //{
+
     	std::stringstream ss;
     	ss << pcd_file_name.data << ".pcd";
       ROS_INFO("%s",ss.str().c_str());
     	pcdfile_write << ss.str()<<endl;
     //}
-    //counter++;
+    counter++;
    }
-/*
-  if(counter >= 500)                      //this entire loop
+  if(counter >= 10)                      //this entire loop
   {
       cout<<" Value of number of pcd"<<counter<<endl;
       hop.hop_status=true;
@@ -108,8 +196,6 @@ void storefilename_callback(const std_msgs::String& pcd_file_name)
   else hop.hop_status = false;
 */
 }
-
-
 
 
 
@@ -210,7 +296,7 @@ void loadData_from_txt (std::vector<PCD, Eigen::aligned_allocator<PCD> > &models
 bool compute_next_hop()
 {
 
-      /*
+
       double x_ = GlobalTransform(0, 3);
       double y_ = GlobalTransform(1, 3);
       double z_ = GlobalTransform(2, 3);
@@ -256,12 +342,8 @@ bool compute_next_hop()
       std::stringstream ss1;
       ss1 << "2.pcd";
       pcl::io::savePCDFile (ss1.str (), *cloud_inRadius, true);
-
       pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
       pcl::PointIndices::Ptr inliers2 (new pcl::PointIndices),outliers2 (new pcl::PointIndices) ;
-
-      //Eigen::Vector3f axis_plane(0.0, 0.0, 1.0);
-      //filters
       pcl::VoxelGrid<pcl::PointXYZ> clean;
       clean.setInputCloud(cloud_inRadius);
       clean.setLeafSize(0.03f, 0.03f, 0.03f);
@@ -269,8 +351,6 @@ bool compute_next_hop()
       std::stringstream ss3;
       ss3 << "3.pcd";
       pcl::io::savePCDFile (ss3.str (), *cloud_inRadius_filtered, true);
-      //filter_end
-      //plane_segmenter
       pcl::SACSegmentation<pcl::PointXYZ> seg;
       seg.setOptimizeCoefficients (true);
       seg.setModelType (pcl::SACMODEL_PLANE);
@@ -283,9 +363,7 @@ bool compute_next_hop()
       extract.setIndices(inliers2);
       extract.setNegative(false);
       extract.filter(*cloud_inPlane);
-      //extract.setNegative(true);
       extract.getRemovedIndices(*outliers2);
-      //extract.filter(outliers2);
       extract.setIndices(outliers2);
       extract.setNegative(false);
       extract.filter(*cloud_outPlane);
@@ -301,7 +379,7 @@ bool compute_next_hop()
       double z_min = -0.3; // later we will calculate from planes by averaging their zs
       double z_max = 3;    // later we will calculate this from planes by averaging
       int planes_number = (int)((z_max - z_min)/(thickness_t+ distance_del));
-      //p.z>z_min+i*(distance_del) p.z<z_min+i*(distance_del)+thickness_t
+
       std::vector<pcl::PointIndices::Ptr, Eigen::aligned_allocator<pcl::PointIndices::Ptr> > plane_inliers_pointer;
       for(int i = 0; i < planes_number; i++)
       {
@@ -319,55 +397,6 @@ bool compute_next_hop()
 
       }
 
-      //plane_inliers_pointer.at(0) = outliers2;
-      //plane_inliers_pointer[0] = outliers2;
-     /*  cout << "Point Cloud " << 0 << "has got " << plane_inliers_pointer[2]->indices.size() << " Points" << endl;
-      extract.setInputCloud(cloud_outPlane);
-      extract.setIndices(plane_inliers_pointer[0]);
-      cout<<"Size of Cloud 1 "<<plane_inliers_pointer[0]->indices.size()<<endl;
-      extract.setNegative(false);
-      extract.filter(*cloud_plane_one);
-      std::stringstream ss6;
-      ss6 << "6.pcd";
-      pcl::io::savePCDFile (ss6.str (), *cloud_plane_one, true);
-      PointCloud::Ptr cloud2 (new PointCloud), cloud3 (new PointCloud), cloud4 (new PointCloud), cloud5 (new PointCloud), cloud6 (new PointCloud), cloud7 (new PointCloud), cloud8 (new PointCloud);
-      extract.setIndices(plane_inliers_pointer[1]);
-      cout<<"Size of Cloud 2 "<<plane_inliers_pointer[1]->indices.size()<<endl;
-      extract.setNegative(false);
-      extract.filter(*cloud2);
-      std::stringstream ss7;
-      ss7 << "7.pcd";
-      pcl::io::savePCDFile (ss7.str (), *cloud2, true);
-      extract.setIndices(plane_inliers_pointer[2]);
-      cout<<"Size of Cloud 3 "<<plane_inliers_pointer[2]->indices.size()<<endl;
-      extract.setNegative(false);
-      extract.filter(*cloud3);
-      std::stringstream ss8;
-      ss8 << "8.pcd";
-      pcl::io::savePCDFile (ss8.str (), *cloud3, true);
-      extract.setIndices(plane_inliers_pointer[3]);
-      cout<<"Size of Cloud 4 "<<plane_inliers_pointer[3]->indices.size()<<endl;
-      extract.setNegative(false);
-      extract.filter(*cloud4);
-      std::stringstream ss9;
-      ss9 << "9.pcd";
-      pcl::io::savePCDFile (ss9.str (), *cloud4, true);
-      extract.setIndices(plane_inliers_pointer[4]);
-      cout<<"Size of Cloud 5 "<<plane_inliers_pointer[4]->indices.size()<<endl;
-      extract.setNegative(false);
-      extract.filter(*cloud5);
-      std::stringstream ss10;
-      ss10 << "10.pcd";
-      pcl::io::savePCDFile (ss10.str (), *cloud5, true);
-      extract.setIndices(plane_inliers_pointer[5]);
-      cout<<"Size of Cloud 6 "<<plane_inliers_pointer[5]->indices.size()<<endl;
-      extract.setNegative(false);
-      extract.filter(*cloud6);
-      std::stringstream ss11;
-      ss11 << "11.pcd";
-      pcl::io::savePCDFile (ss11.str (), *cloud6, true);
-      */
-      /*
       int numberOfSectors = 24;
       int anglePerSector = 360/numberOfSectors;
       std::vector<Plane, Eigen::aligned_allocator<Plane> > Planes;
@@ -397,7 +426,6 @@ bool compute_next_hop()
               if(sector_number == k)
               {
               inliers_sector->indices.push_back(j);
-              //cout<<"one point matched"<<k<<"in"<<"with"<<theta<<endl;
               }
             }
             Sector sector;
@@ -406,9 +434,6 @@ bool compute_next_hop()
             if(inliers_sector->indices.size() > 15) sector.indicate = false;
             else sector.indicate = true;
             sectors.push_back(sector);
-            //cout<<"size of the sector"<<sector.indices->indices.size()<<endl;
-            //cout<<"size of the computed"<<inliers_sector->indices.size()<<endl;
-
          }
          Plane plane;
          plane.sectors = sectors;
@@ -416,55 +441,8 @@ bool compute_next_hop()
 
           cout<<"size of sector "<<sectors[3].indices->indices.size()<<endl;
 
+      }
 
-
-
-
-
-      }
-      /*
-      cout<<"total_number of indices in plane 0" << plane_inliers_pointer[0]->indices.size()<<endl;
-      for(int i = 0; i < numberOfSectors; i++)
-      {
-      cout<<"size of indices in "<<i<<"th sector of each plane " << Planes[0].sectors[i].indices->indices.size() << " index is "<<Planes[0].sectors[i].indicate<<endl;
-      }
-      cout<<"total_number of indices in plane 0" << plane_inliers_pointer[1]->indices.size()<<endl;
-      for(int i = 0; i < numberOfSectors; i++)
-      {
-      cout<<"size of indices in "<<i<<"th sector of each plane " << Planes[1].sectors[i].indices->indices.size()<<" index is "<<Planes[1].sectors[i].indicate<<endl;
-      }
-      cout<<"total_number of indices in plane 0" << plane_inliers_pointer[2]->indices.size()<<endl;
-      for(int i = 0; i < numberOfSectors; i++)
-      {
-      cout<<"size of indices in "<<i<<"th sector of each plane " << Planes[2].sectors[i].indices->indices.size()<<" index is "<<Planes[2].sectors[i].indicate<<endl;
-      }
-      cout<<"total_number of indices in plane 0" << plane_inliers_pointer[3]->indices.size()<<endl;
-      for(int i = 0; i < numberOfSectors; i++)
-      {
-      cout<<"size of indices in "<<i<<"th sector of each plane " << Planes[3].sectors[i].indices->indices.size()<<" index is "<<Planes[3].sectors[i].indicate<<endl;
-      }
-      cout<<"total_number of indices in plane 0" << plane_inliers_pointer[4]->indices.size()<<endl;
-      for(int i = 0; i < numberOfSectors; i++)
-      {
-      cout<<"size of indices in "<<i<<"th sector of each plane " << Planes[4].sectors[i].indices->indices.size()<<" index is "<<Planes[4].sectors[i].indicate<<endl;
-      }
-      cout<<"total_number of indices in plane 0" << plane_inliers_pointer[5]->indices.size()<<endl;
-      for(int i = 0; i < numberOfSectors; i++)
-      {
-      cout<<"size of indices in "<<i<<"th sector of each plane " << Planes[5].sectors[i].indices->indices.size()<<" index is "<<Planes[5].sectors[i].indicate<<endl;
-      }
-      cout<<"total_number of indices in plane 0" << plane_inliers_pointer[6]->indices.size()<<endl;
-      for(int i = 0; i < numberOfSectors; i++)
-      {
-      cout<<"size of indices in "<<i<<"th sector of each plane " << Planes[6].sectors[i].indices->indices.size()<<" index is "<<Planes[6].sectors[i].indicate<<endl;
-      }
-      cout<<"total_number of indices in plane 0" << plane_inliers_pointer[7]->indices.size()<<endl;
-      for(int i = 0; i < numberOfSectors; i++)
-      {
-      cout<<"size of indices in "<<i<<"th sector of each plane " << Planes[7].sectors[i].indices->indices.size()<<" index is "<<Planes[7].sectors[i].indicate<<endl;
-      }
-      */
-      /*
       std::vector<Candidate, Eigen::aligned_allocator<Candidate>> Candidates;
       std::vector<bool> bool_string;
       Candidate candidate;
@@ -513,13 +491,16 @@ bool compute_next_hop()
         if(i == 0)
         {
           temp_phi = abs(Candidates[i].phi - hop.preVecPhi);
-          hop.phi = Candidates[i].phi - hop.preVecPhi;
+          hop.phi = Candidates[i].phi;
+          if(hop.phi>180) hop.phi = hop.phi-360;
           cout<<"hop phi is"<<hop.phi<<endl;
         }
         else{
-          if(temp_phi > abs(Candidates[i].phi - hop.preVecPhi))
+          if(temp_phi < abs(Candidates[i].phi - hop.preVecPhi))
           {
-            hop.phi = Candidates[i].phi - hop.preVecPhi;
+            hop.phi = Candidates[i].phi;
+            if(hop.phi>180) hop.phi = hop.phi-360;
+            temp_phi = abs(Candidates[i].phi - hop.preVecPhi);
 
           }
         }
@@ -530,22 +511,14 @@ bool compute_next_hop()
       hop.theta = 60;
       cout<<"hop phi is"<<hop.phi<<endl;
       hop.icp_status = true;
+      hop.ox =hop.x;
+      hop.oy =hop.y;
+      hop.oz =hop.z;
       return 1;
 
 
-  }
-  else
-  {
-    return 0;
-  }
-    */
-    hop.d = 1.5;
-    hop.theta = 60;
-    hop.phi =70;
-    cout<<"hop phi is"<<hop.phi<<endl;
-    return 1;
-
 }
+
 
 void pairAlign (const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt, PointCloud::Ptr output, Eigen::Matrix4f &final_transform, bool downsample = true)
 {
