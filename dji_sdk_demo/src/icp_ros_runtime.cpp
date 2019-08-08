@@ -405,13 +405,16 @@ bool compute_next_hop()
         if(i == 0)
         {
           temp_phi = abs(Candidates[i].phi - hop.preVecPhi);
-          hop.phi = Candidates[i].phi - hop.preVecPhi;
+          hop.phi = Candidates[i].phi;
+          if(hop.phi>180) hop.phi = hop.phi-360;
           cout<<"hop phi is"<<hop.phi<<endl;
         }
         else{
           if(temp_phi > abs(Candidates[i].phi - hop.preVecPhi))
           {
-            hop.phi = Candidates[i].phi - hop.preVecPhi;
+            hop.phi = Candidates[i].phi;
+            if(hop.phi>180) hop.phi = hop.phi-360;
+            temp_phi = abs(Candidates[i].phi - hop.preVecPhi));
 
           }
         }
@@ -422,6 +425,9 @@ bool compute_next_hop()
       hop.theta = 60;
       cout<<"hop phi is"<<hop.phi<<endl;
       hop.icp_status = true;
+      hop.ox =hop.x;
+      hop.oy =hop.y;
+      hop.oz =hop.z;
       return 1;
 
 
