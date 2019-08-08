@@ -17,7 +17,6 @@ const float rad2deg = 180.0/C_PI;
 
 //ros::ServiceClient set_local_pos_reference;
 ros::ServiceClient sdk_ctrl_authority_service;
-ros::ServiceClient set_local_pos_reference;
 ros::ServiceClient drone_task_service;
 ros::ServiceClient drone_arm_service;
 ros::ServiceClient query_version_service;
@@ -51,9 +50,7 @@ int main(int argc, char** argv)
   drone_task_service         = nh.serviceClient<dji_sdk::DroneTaskControl>("dji_sdk/drone_task_control");
   drone_arm_service          = nh.serviceClient<dji_sdk::DroneArmControl>("dji_sdk/drone_arm_control");
   query_version_service      = nh.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
-  set_local_pos_reference    = nh.serviceClient<dji_sdk::SetLocalPosRef> ("dji_sdk/set_local_pos_ref");
 
-  set_local_position();
   file1.open("velocity_from_sdk.csv");
   file2.open("velocity_published.csv");
   bool obtain_control_flag = obtain_control();
@@ -104,21 +101,21 @@ void Mission::hop_ex()
             hop.touchdown_counter++;
             if(hop.touchdown_counter >= 10)
             {
-              hop_fill_vel(0,0,0,0);
+              hop_fill_vel(0,0,0,1.57);
               hop.finished = true;
               ROS_INFO("SphereX Landed");
               disarm_motors();
             }
             else
             {
-              hop_fill_vel(0,0,-0.20,0);
+              hop_fill_vel(0,0,-0.20,1.57);
                hop.finished = false;
                ROS_INFO("In touchdown");   //return true;
             }
           }
           else
           {
-            hop_fill_vel(0,0, hop_land_vel,0);
+            hop_fill_vel(0,0, hop_land_vel,1.57);
             ROS_INFO("%lf, %lf, %lf, %f", 0, 0 , hop_land_vel, 0);
             ROS_INFO("Pre touchdown");
           }
@@ -127,12 +124,12 @@ void Mission::hop_ex()
         {
           if(hop.check_yaw())
           {
-            hop_fill_vel(hop.x_vel,hop.y_vel,z_vel_c,0);
+            hop_fill_vel(hop.x_vel,hop.y_vel,z_vel_c,1.57);
             ROS_INFO("%lf, %lf, %lf, %f", hop.x_vel,hop.y_vel,z_vel_c, hop.yaw_rate);
           }
           else
           {
-          hop_fill_vel(hop.x_vel,hop.y_vel,z_vel_c,0);
+          hop_fill_vel(hop.x_vel,hop.y_vel,z_vel_c,1.57);
           ROS_INFO("%lf, %lf, %lf, %f", hop.x_vel,hop.y_vel,z_vel_c, 0);
           }
 
