@@ -124,7 +124,7 @@ void Mission::hop_ex()
         {
           if(hop.check_yaw())
           {
-            hop_fill_vel(hop.x_vel,hop.y_vel,z_vel_c,hop.yaw_rate);
+            hop_fill_vel(hop.x_vel,hop.y_vel,z_vel_c,0);
             ROS_INFO("%lf, %lf, %lf, %f", hop.x_vel,hop.y_vel,z_vel_c, hop.yaw_rate);
           }
           else
@@ -144,7 +144,7 @@ void Mission::hop_ex()
 bool Mission::check_yaw(void)
 {
   float yawThresholdInDeg   = 2;
-  double yawDesiredRad     = deg2rad * hop.phi;
+  double yawDesiredRad     = 0;
   double yawThresholdInRad = deg2rad * yawThresholdInDeg;
   double yawInRad          = toEulerAngle(current_atti).z;
   if((yawInRad - yawDesiredRad) < yawThresholdInRad)

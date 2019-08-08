@@ -152,7 +152,7 @@ DJISDKNode::flightControlVxVyVzYawrateCallback(
 {
   uint8_t flag = (Control::VERTICAL_VELOCITY |
                   Control::HORIZONTAL_VELOCITY |
-                  Control::YAW_RATE |
+                  Control::YAW_ANGLE |
                   Control::HORIZONTAL_GROUND |
                   Control::STABLE_ENABLE);
   float vx        = pMsg->axes[0];
