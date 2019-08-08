@@ -17,6 +17,7 @@ const float rad2deg = 180.0/C_PI;
 
 //ros::ServiceClient set_local_pos_reference;
 ros::ServiceClient sdk_ctrl_authority_service;
+ros::ServiceClient set_local_pos_reference;
 ros::ServiceClient drone_task_service;
 ros::ServiceClient drone_arm_service;
 ros::ServiceClient query_version_service;
@@ -50,7 +51,9 @@ int main(int argc, char** argv)
   drone_task_service         = nh.serviceClient<dji_sdk::DroneTaskControl>("dji_sdk/drone_task_control");
   drone_arm_service          = nh.serviceClient<dji_sdk::DroneArmControl>("dji_sdk/drone_arm_control");
   query_version_service      = nh.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
+  set_local_pos_reference    = nh.serviceClient<dji_sdk::SetLocalPosRef> ("dji_sdk/set_local_pos_ref");
 
+  set_local_position();
   file1.open("velocity_from_sdk.csv");
   file2.open("velocity_published.csv");
   bool obtain_control_flag = obtain_control();
