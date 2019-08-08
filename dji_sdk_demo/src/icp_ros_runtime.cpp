@@ -431,8 +431,8 @@ bool compute_next_hop()
       return 1;
 
 
-  }
 }
+
 
 void pairAlign (const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt, PointCloud::Ptr output, Eigen::Matrix4f &final_transform, bool downsample = true)
 {
