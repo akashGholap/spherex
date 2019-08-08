@@ -414,7 +414,7 @@ bool compute_next_hop()
           {
             hop.phi = Candidates[i].phi;
             if(hop.phi>180) hop.phi = hop.phi-360;
-            temp_phi = abs(Candidates[i].phi - hop.preVecPhi));
+            temp_phi = abs(Candidates[i].phi - hop.preVecPhi);
 
           }
         }
